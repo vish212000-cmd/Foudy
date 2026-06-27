@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react"
+import { useState } from "react"
 import { AlertCircle, Home, RefreshCw } from "lucide-react"
 import { EmptyState } from "../components/ui/EmptyState"
 import { Button } from "../components/ui/Button"
@@ -23,7 +23,7 @@ export function ServerError() {
         className="pointer-events-none absolute inset-0 overflow-hidden"
         aria-hidden="true"
       >
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[560px] w-[560px] rounded-full bg-danger-text opacity-[0.05] blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl aspect-square rounded-full bg-danger-text opacity-5 blur-3xl" />
       </div>
 
       <div className="relative z-10 w-full max-w-lg">
@@ -50,7 +50,7 @@ export function ServerError() {
                 onClick={handleRetry}
                 isLoading={isRetrying}
                 aria-label="Retry the request"
-                className="gap-2 min-w-[140px]"
+                className="gap-2 min-w-40"
               >
                 {!isRetrying && (
                   <RefreshCw className="h-4 w-4" aria-hidden="true" />

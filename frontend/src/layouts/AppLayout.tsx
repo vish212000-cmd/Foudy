@@ -1,5 +1,6 @@
-import React from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { AuthService } from '../services/auth'
+import { useAuthStore } from '../store/auth'
 import { cn } from '../lib/utils'
 import {
   Home,
@@ -7,9 +8,8 @@ import {
   MessageSquare,
   Bell,
   Settings,
-  LogOut,
   Radio,
-  Shield,
+  LogOut,
 } from 'lucide-react'
 import { Avatar, AvatarFallback } from '../components/ui/Avatar'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/Tooltip'
@@ -31,6 +31,18 @@ const bottomItems = [
  * Used by: Home, Profile, Settings, Notifications, Rooms, etc.
  */
 export function AppLayout() {
+  const navigate = useNavigate()
+  const { logout } = useAuthStore()
+
+  const handleLogout = async () => {
+    try {
+      await AuthService.logout()
+    } finally {
+      logout()
+      navigate('/login')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-canvas flex">
       {/* Sidebar */}
@@ -129,6 +141,20 @@ export function AppLayout() {
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="right" className="md:hidden">Profile</TooltipContent>
+            </Tooltip>
+
+            {/* Logout link */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm font-medium transition-colors w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary text-destructive hover:bg-destructive/10"
+                >
+                  <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  <span className="hidden md:block">Log out</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="md:hidden">Log out</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>

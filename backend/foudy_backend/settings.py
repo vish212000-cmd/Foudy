@@ -34,12 +34,14 @@ INSTALLED_APPS = [
     'channels',
     'drf_spectacular',
 
-    # Local apps
+    # Internal apps
     'core',
     'common',
     'accounts',
     'profiles',
     'matching',
+    'realtime',
+    'signaling',
     'rooms',
     'chat',
     'notifications',
@@ -129,6 +131,10 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Security Configurations
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=['http://localhost:5173', 'http://127.0.0.1:5173'])

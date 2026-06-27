@@ -1,12 +1,39 @@
-﻿import React from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Radio } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Heading } from "../components/ui/Heading";
 import { Text } from "../components/ui/Text";
 import { Badge } from "../components/ui/Badge";
 import { Spinner } from "../components/ui/Spinner";
+import { useSocketStore } from "../store/socket";
+import { MatchingService } from "../services/matching";
 
 export default function Searching() {
+  const navigate = useNavigate();
+  const { lastEvent } = useSocketStore();
+  const [isCanceling, setIsCanceling] = useState(false);
+
+  useEffect(() => {
+    if (!lastEvent) return;
+
+    if (lastEvent.event === 'matched') {
+        navigate('/match-found', { state: { matchId: lastEvent.payload.matched_with } });
+    } else if (lastEvent.event === 'queue_status' && lastEvent.payload.status === 'IDLE') {
+        navigate('/random-match');
+    }
+  }, [lastEvent, navigate]);
+
+  const handleCancel = async () => {
+    setIsCanceling(true);
+    try {
+        await MatchingService.leaveQueue();
+        navigate(-1);
+    } catch {
+        navigate(-1);
+    }
+  };
+
   return (
     <div
       className="dark min-h-screen bg-canvas font-sans relative flex flex-col items-center justify-center px-4"
@@ -14,12 +41,9 @@ export default function Searching() {
       aria-label="Searching for a match"
     >
       {/* Ambient background glow */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 overflow-hidden pointer-events-none"
-      >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-brand-primary/5 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full bg-brand-primary/8 blur-2xl animate-pulse" />
+      <div aria-hidden="true" className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg aspect-square rounded-full bg-brand-primary/5 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xs aspect-square rounded-full bg-brand-primary/8 blur-2xl animate-pulse" />
       </div>
 
       {/* Cancel button */}
@@ -28,8 +52,10 @@ export default function Searching() {
         size="sm"
         className="absolute top-4 right-4 text-text-secondary hover:text-text-primary"
         aria-label="Cancel search"
+        onClick={handleCancel}
+        disabled={isCanceling}
       >
-        Cancel
+        {isCanceling ? "Canceling..." : "Cancel"}
       </Button>
 
       {/* Main centered content */}

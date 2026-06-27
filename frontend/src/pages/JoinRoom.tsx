@@ -1,9 +1,10 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { Heading } from "../components/ui/Heading"
 import { Text } from "../components/ui/Text"
 import { SearchInput } from "../components/ui/SearchInput"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/Tabs"
 import { RoomCard } from "../components/ui/RoomCard"
+import { EmptyState } from "../components/ui/EmptyState"
 import {
   Pagination,
   PaginationContent,
@@ -109,14 +110,10 @@ export default function JoinRoom() {
         {(["all", "public", "invite"] as TabValue[]).map((tab) => (
           <TabsContent key={tab} value={tab} className="mt-0">
             {filtered.length === 0 ? (
-              <div className="mt-8 flex flex-col items-center justify-center rounded-xl border border-dashed border-border-default bg-surface py-16 text-center">
-                <Text variant="body-lg" className="text-text-secondary">
-                  No rooms found
-                </Text>
-                <Text variant="caption" className="mt-1 text-text-tertiary">
-                  Try a different search term or filter.
-                </Text>
-              </div>
+              <EmptyState 
+                title="No rooms found" 
+                description="Try a different search term or filter."
+              />
             ) : (
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
                 {filtered.map((room) => (

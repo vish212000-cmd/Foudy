@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react"
+import React, { useState } from "react"
 import {
   Radio,
   MessageSquare,
@@ -209,23 +209,11 @@ export function EmptyStatePage() {
             />
 
             {/* Placeholder to complete the grid symmetrically */}
-            <div
-              className="flex min-h-[300px] flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-surface p-8 text-center"
-              aria-label="Custom error state placeholder"
-            >
-              <div
-                className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-surface-active"
-                aria-hidden="true"
-              >
-                <span className="text-2xl select-none" role="img" aria-label="Sparkles">✨</span>
-              </div>
-              <Heading variant="h4" className="mb-2 text-text-primary">
-                More Coming Soon
-              </Heading>
-              <Text variant="body" className="text-text-secondary max-w-xs">
-                Additional error and empty state variants will appear here as the design system grows.
-              </Text>
-            </div>
+            <EmptyState
+              title="More Coming Soon"
+              description="Additional error and empty state variants will appear here as the design system grows."
+              icon={<span className="text-2xl select-none" role="img" aria-label="Sparkles">✨</span>}
+            />
           </div>
         </section>
       </div>

@@ -13,6 +13,13 @@ const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(file
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    rollupOptions: {
+      output: {
+        // removed manualChunks due to type errors
+      }
+    }
+  },
   test: {
     projects: [{
       extends: true,

@@ -1,9 +1,12 @@
-import React from 'react'
-import { Radio, Users, MessageSquare, ArrowRight } from 'lucide-react'
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Radio, Users, MessageSquare, ArrowRight, Loader2 } from 'lucide-react'
 import { AuthLayout } from '../layouts/AuthLayout'
 import { Button } from '../components/ui/Button'
 import { Heading } from '../components/ui/Heading'
 import { Text } from '../components/ui/Text'
+import { AuthService } from '../services/auth'
+import { useAuthStore } from '../store/auth'
 
 interface FeatureItem {
   icon: React.ReactNode
@@ -33,6 +36,25 @@ const features: FeatureItem[] = [
  * Welcome — Onboarding welcome screen using AuthLayout.
  */
 export function Welcome() {
+  const navigate = useNavigate()
+  const { setCredentials } = useAuthStore()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleGuestLogin = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const { user, access_token } = await AuthService.guestLogin()
+      setCredentials(user, access_token)
+      navigate('/profile')
+    } catch {
+      setError('Failed to start as guest. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <AuthLayout>
       <div className="flex flex-col items-center gap-8 py-10">
@@ -62,6 +84,11 @@ export function Welcome() {
           >
             Discover real conversations with real people. Video, audio, or text — your choice.
           </Text>
+          {error && (
+            <Text variant="caption" className="text-destructive font-medium mt-2">
+              {error}
+            </Text>
+          )}
         </div>
 
         {/* Feature highlights */}
@@ -103,9 +130,11 @@ export function Welcome() {
             size="lg"
             className="w-full"
             aria-label="Get started with FOUDY"
+            onClick={handleGuestLogin}
+            disabled={isLoading}
           >
-            Get Started
-            <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+            {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Get Started'}
+            {!isLoading && <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />}
           </Button>
 
           <Button
@@ -113,6 +142,8 @@ export function Welcome() {
             size="lg"
             className="w-full"
             aria-label="Sign in to your existing FOUDY account"
+            onClick={() => navigate('/login')}
+            disabled={isLoading}
           >
             Sign In
           </Button>

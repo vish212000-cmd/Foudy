@@ -15,3 +15,32 @@ class Report(BaseModel):
 
     def __str__(self):
         return f"Report by {self.reporter} against {self.reported_user}"
+
+class Block(BaseModel):
+    blocker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blocks_initiated')
+    blocked = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blocks_received')
+
+    class Meta:
+        unique_together = ('blocker', 'blocked')
+        indexes = [
+            models.Index(fields=['blocker']),
+            models.Index(fields=['blocked']),
+        ]
+
+    def __str__(self):
+        return f"{self.blocker} blocked {self.blocked}"
+
+class AuditLog(BaseModel):
+    class Action(models.TextChoices):
+        BLOCK = 'BLOCK', 'Block'
+        UNBLOCK = 'UNBLOCK', 'Unblock'
+        REPORT = 'REPORT', 'Report'
+        SESSION_TERMINATED = 'SESSION_TERMINATED', 'Session Terminated'
+        
+    action = models.CharField(max_length=50, choices=Action.choices)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='audit_actions')
+    target = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='audit_targets')
+    details = models.JSONField(default=dict, blank=True)
+
+    def __str__(self):
+        return f"{self.action} by {self.actor} on {self.target} at {self.created_at}"

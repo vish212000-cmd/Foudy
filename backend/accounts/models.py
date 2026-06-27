@@ -1,12 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+import uuid
 from core.models import BaseModel
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError('Email must be set')
-        email = self.normalize_email(email)
+    def create_user(self, email=None, password=None, **extra_fields):
+        if email:
+            email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         if password:
             user.set_password(password)
@@ -21,7 +21,8 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
-    email = models.EmailField(unique=True, db_index=True)
+    email = models.EmailField(unique=True, db_index=True, null=True, blank=True)
+    is_guest = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     
@@ -31,4 +32,15 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.email
+        return self.email or f"Guest {self.id}"
+
+class UserSession(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions')
+    refresh_token_family = models.UUIDField(default=uuid.uuid4, unique=True)
+    device_info = models.CharField(max_length=255, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    expires_at = models.DateTimeField()
+    is_revoked = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Session for {self.user} (Revoked: {self.is_revoked})"

@@ -7,13 +7,14 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'foudy_backend.settings')
 
 django_asgi_app = get_asgi_application()
 
+from realtime.middleware import JWTAuthMiddleware
+import realtime.routing
+
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
-    # "websocket": AllowedHostsOriginValidator(
-    #     AuthMiddlewareStack(
-    #         URLRouter(
-    #             # websocket urlpatterns here
-    #         )
-    #     )
-    # ),
+    "websocket": JWTAuthMiddleware(
+        URLRouter(
+            realtime.routing.websocket_urlpatterns
+        )
+    ),
 })

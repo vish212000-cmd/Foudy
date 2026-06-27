@@ -1,9 +1,13 @@
-﻿import React, { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Video, Mic, MessageSquare } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Heading } from "../components/ui/Heading";
 import { Text } from "../components/ui/Text";
 import { cn } from "../lib/utils";
+import { useAuthStore } from "../store/auth";
+import { MatchingService } from "../services/matching";
+import { Loader2 } from "lucide-react";
 
 type ChatMode = "video" | "audio" | "text";
 
@@ -38,13 +42,39 @@ const modes: ModeOption[] = [
 const defaultInterests = ["Gaming", "Music", "Tech", "Art"];
 
 export default function RandomMatch() {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  
   const [selectedMode, setSelectedMode] = useState<ChatMode>("video");
   const [interests, setInterests] = useState<string[]>(defaultInterests);
+  const [isJoining, setIsJoining] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Matchmaking Gate
+    const score = user?.profile?.completion_score || 0;
+    if (score < 70) {
+      navigate('/setup', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleAddInterest = () => {
     const newInterest = window.prompt("Add an interest:");
     if (newInterest && newInterest.trim() && !interests.includes(newInterest.trim())) {
       setInterests((prev) => [...prev, newInterest.trim()]);
+    }
+  };
+
+  const handleStartMatching = async () => {
+    setIsJoining(true);
+    setError(null);
+    try {
+        await MatchingService.joinQueue();
+        navigate('/searching');
+    } catch (err: any) {
+        setError(err.response?.data?.error || "Failed to join queue.");
+    } finally {
+        setIsJoining(false);
     }
   };
 
@@ -161,45 +191,47 @@ export default function RandomMatch() {
             aria-label="Selected interests"
           >
             {interests.map((interest) => (
-              <button
+              <Button
                 key={interest}
                 type="button"
+                variant="secondary"
+                size="sm"
                 aria-label={`Interest: ${interest}`}
-                className={cn(
-                  "inline-flex items-center rounded-full px-3 py-1 text-sm font-medium transition-all duration-150",
-                  "bg-surface-active text-text-primary border border-border-default",
-                  "hover:border-brand-primary hover:text-brand-primary hover:bg-brand-primary/5",
-                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 focus-visible:ring-offset-canvas"
-                )}
+                className="rounded-full"
               >
                 {interest}
-              </button>
+              </Button>
             ))}
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={handleAddInterest}
               aria-label="Add new interest"
-              className={cn(
-                "inline-flex items-center rounded-full px-3 py-1 text-sm font-medium transition-all duration-150",
-                "border border-dashed border-border-strong text-text-tertiary",
-                "hover:border-brand-primary hover:text-brand-primary hover:bg-brand-primary/5",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 focus-visible:ring-offset-canvas"
-              )}
+              className="rounded-full border-dashed text-text-tertiary"
             >
               + Add
-            </button>
+            </Button>
           </div>
         </section>
 
         {/* CTA */}
+        {error && (
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <Text variant="caption" className="text-destructive text-center block">{error}</Text>
+            </div>
+        )}
         <Button
           variant="primary"
           size="lg"
           className="w-full gap-2"
+          onClick={handleStartMatching}
+          disabled={isJoining}
           aria-label={`Start matching in ${selectedMode} mode`}
         >
-          Start Matching
-          <ArrowRight className="h-5 w-5" aria-hidden="true" />
+          {isJoining ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+            <>Start Matching <ArrowRight className="h-5 w-5" aria-hidden="true" /></>
+          )}
         </Button>
 
         {/* Fine print */}

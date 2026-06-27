@@ -1,3 +1,77 @@
-from django.shortcuts import render
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema
+from accounts.serializers import UserSerializer
+from accounts.models import User
+from rest_framework.parsers import MultiPartParser, FormParser
+from PIL import Image
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import sys
 
-# Create your views here.
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses={200: UserSerializer})
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+    @extend_schema(request=UserSerializer, responses={200: UserSerializer})
+    def patch(self, request):
+        user = request.user
+        
+        updatable_fields = [
+            'display_name', 'bio', 'interests', 'keywords', 
+            'languages', 'country', 'gender_preference', 
+            'privacy_settings', 'notification_settings'
+        ]
+
+        for field in updatable_fields:
+            if field in request.data:
+                setattr(user.profile, field, request.data[field])
+            
+        user.profile.save()
+        
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+class AvatarUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        if 'avatar' not in request.FILES:
+            return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        avatar_file = request.FILES['avatar']
+        try:
+            img = Image.open(avatar_file)
+            # Crop to square and resize
+            min_dim = min(img.size)
+            left = (img.width - min_dim) / 2
+            top = (img.height - min_dim) / 2
+            right = (img.width + min_dim) / 2
+            bottom = (img.height + min_dim) / 2
+            
+            img = img.crop((left, top, right, bottom))
+            img = img.resize((512, 512), Image.Resampling.LANCZOS)
+            
+            output = BytesIO()
+            img.save(output, format='WebP', quality=85)
+            output.seek(0)
+            
+            webp_file = InMemoryUploadedFile(
+                output, 'ImageField', f"{request.user.id}_avatar.webp", 'image/webp',
+                sys.getsizeof(output), None
+            )
+            
+            request.user.profile.avatar = webp_file
+            request.user.profile.save()
+            
+            serializer = UserSerializer(request.user)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react"
+import { useState } from "react"
 import { WifiOff, RefreshCw } from "lucide-react"
 import { Heading } from "../components/ui/Heading"
 import { Text } from "../components/ui/Text"
@@ -23,7 +23,7 @@ export function NoInternet() {
         className="pointer-events-none absolute inset-0 overflow-hidden"
         aria-hidden="true"
       >
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[480px] w-[480px] rounded-full bg-brand-primary opacity-[0.04] blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md aspect-square rounded-full bg-brand-primary opacity-5 blur-3xl" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center text-center max-w-md w-full">
@@ -60,7 +60,7 @@ export function NoInternet() {
           onClick={handleRetry}
           isLoading={isRetrying}
           aria-label="Retry internet connection"
-          className="gap-2 min-w-[160px]"
+          className="gap-2 min-w-40"
         >
           {!isRetrying && <RefreshCw className="h-4 w-4" aria-hidden="true" />}
           {isRetrying ? "Checking\u2026" : "Try Again"}

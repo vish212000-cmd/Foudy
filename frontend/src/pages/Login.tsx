@@ -1,4 +1,6 @@
-﻿import React, { useState } from 'react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Loader2 } from 'lucide-react'
 import { AuthLayout } from '../layouts/AuthLayout'
 import { Button } from '../components/ui/Button'
 import { TextInput } from '../components/ui/TextInput'
@@ -7,6 +9,8 @@ import { Checkbox } from '../components/ui/Checkbox'
 import { Divider } from '../components/ui/Divider'
 import { Heading } from '../components/ui/Heading'
 import { Text } from '../components/ui/Text'
+import { AuthService } from '../services/auth'
+import { useAuthStore } from '../store/auth'
 
 function FoudyLogo() {
   return (
@@ -28,7 +32,7 @@ function GoogleIcon() {
       className="h-5 w-5 rounded-full bg-surface-hover border border-border-default flex items-center justify-center shrink-0"
       aria-hidden="true"
     >
-      <span className="text-[10px] font-bold text-text-primary leading-none select-none">G</span>
+      <span className="text-xs font-bold text-text-primary leading-none select-none">G</span>
     </div>
   )
 }
@@ -47,7 +51,34 @@ function AppleIcon() {
 }
 
 export default function Login() {
+  const navigate = useNavigate()
+  const { setCredentials } = useAuthStore()
   const [rememberMe, setRememberMe] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !password) {
+      setError('Please fill in all fields.')
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const { user, access_token } = await AuthService.login({ email, password })
+      setCredentials(user, access_token)
+      navigate('/profile')
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to sign in. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <AuthLayout>
@@ -69,13 +100,18 @@ export default function Login() {
               Sign up
             </a>
           </Text>
+          {error && (
+            <Text variant="caption" className="text-destructive font-medium mt-2">
+              {error}
+            </Text>
+          )}
         </div>
 
         <div className="bg-surface border border-border-default rounded-xl shadow-sm p-6 sm:p-8 flex flex-col gap-5">
           <form
             aria-label="Sign in form"
             noValidate
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={handleLogin}
           >
             <div className="flex flex-col gap-5">
 
@@ -86,6 +122,9 @@ export default function Login() {
                 placeholder="you@example.com"
                 autoComplete="email"
                 aria-required="true"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
               />
 
               <PasswordInput
@@ -93,6 +132,9 @@ export default function Login() {
                 label="Password"
                 autoComplete="current-password"
                 aria-required="true"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
               />
 
               <div className="flex items-center justify-between gap-4">
@@ -130,8 +172,9 @@ export default function Login() {
                 size="md"
                 className="w-full mt-1"
                 aria-label="Sign in to your FOUDY account"
+                disabled={isLoading}
               >
-                Sign in
+                {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Sign in'}
               </Button>
             </div>
           </form>

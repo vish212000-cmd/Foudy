@@ -1,106 +1,86 @@
-﻿import React, { useState } from 'react'
-import { UserX } from 'lucide-react'
-import { Heading } from '../components/ui/Heading'
-import { Text } from '../components/ui/Text'
-import { Button } from '../components/ui/Button'
-import { Avatar, AvatarFallback } from '../components/ui/Avatar'
-import { Card, CardContent } from '../components/ui/Card'
-import { EmptyState } from '../components/ui/EmptyState'
+import React, { useEffect, useState } from 'react';
+import { ModerationService } from '../services/ModerationService';
+import type { BlockedUser } from '../types/moderation';
+import { ShieldCheck, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-interface BlockedUser {
-  id: string
-  username: string
-  blockedOn: string
-  initials: string
-}
+export const BlockedUsers: React.FC = () => {
+    const [blocks, setBlocks] = useState<BlockedUser[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-const initialBlockedUsers: BlockedUser[] = [
-  { id: '1', username: 'troll_user99', blockedOn: 'Jun 10', initials: 'TU' },
-  { id: '2', username: 'spam_bot',     blockedOn: 'Jun 10', initials: 'SB' },
-  { id: '3', username: 'rude_person',  blockedOn: 'Jun 10', initials: 'RP' },
-]
+    useEffect(() => {
+        loadBlocks();
+    }, []);
 
-export function BlockedUsers() {
-  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>(initialBlockedUsers)
-  const [unblocking, setUnblocking] = useState<string | null>(null)
-
-  const handleUnblock = (id: string) => {
-    setUnblocking(id)
-    setTimeout(() => {
-      setBlockedUsers((prev) => prev.filter((u) => u.id !== id))
-      setUnblocking(null)
-    }, 600)
-  }
-
-  return (
-    <div className="max-w-2xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">
-      {/* Page header */}
-      <div className="mb-6">
-        <Heading variant="h3" className="text-text-primary mb-1">
-          Blocked Users
-        </Heading>
-        <Text variant="caption">
-          {blockedUsers.length > 0
-            ? `${blockedUsers.length} blocked ${blockedUsers.length === 1 ? 'user' : 'users'}`
-            : 'No blocked users'}
-        </Text>
-      </div>
-
-      {/* Blocked user list */}
-      {blockedUsers.length > 0 && (
-        <ul className="space-y-3" aria-label="Blocked users list" role="list">
-          {blockedUsers.map((user) => (
-            <li key={user.id}>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-10 w-10 shrink-0">
-                      <AvatarFallback className="text-sm font-semibold bg-surface-active text-text-secondary">
-                        {user.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <Text variant="label" className="text-text-primary truncate block">
-                        {user.username}
-                      </Text>
-                      <Text variant="caption" className="text-text-tertiary">
-                        Blocked on {user.blockedOn}
-                      </Text>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleUnblock(user.id)}
-                      isLoading={unblocking === user.id}
-                      aria-label={`Unblock ${user.username}`}
-                      className="shrink-0 text-text-secondary hover:text-text-primary"
-                    >
-                      Unblock
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {/* Empty state */}
-      <div
-        className={
-          blockedUsers.length > 0
-            ? 'mt-6 opacity-40 pointer-events-none select-none'
-            : 'mt-0'
+    const loadBlocks = async () => {
+        try {
+            const data = await ModerationService.getBlockedUsers();
+            setBlocks(data);
+        } catch {
+            setError('Failed to load blocked users.');
+        } finally {
+            setLoading(false);
         }
-        aria-hidden={blockedUsers.length > 0}
-      >
-        <EmptyState
-          icon={<UserX className="h-8 w-8" aria-hidden="true" />}
-          title="No users blocked"
-          description="Users you block will appear here. Blocking someone prevents them from matching or messaging you."
-          className={blockedUsers.length > 0 ? 'min-h-[160px]' : 'min-h-[280px]'}
-        />
-      </div>
-    </div>
-  )
-}
+    };
+
+    const handleUnblock = async (id: number) => {
+        try {
+            await ModerationService.unblockUser(id);
+            setBlocks(blocks.filter(b => b.id !== id));
+        } catch {
+            alert('Failed to unblock user.');
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-950 text-white p-6">
+            <div className="max-w-2xl mx-auto mt-10">
+                <div className="flex items-center gap-4 mb-8">
+                    <Link to="/home" className="p-2 bg-gray-900 rounded-full hover:bg-gray-800 transition-colors">
+                        <ArrowLeft size={20} />
+                    </Link>
+                    <h1 className="text-3xl font-bold flex items-center gap-2">
+                        <ShieldAlert className="text-red-500" /> Safety Center
+                    </h1>
+                </div>
+
+                <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 shadow-xl">
+                    <h2 className="text-xl font-semibold mb-4">Blocked Users</h2>
+                    
+                    {error && <div className="text-red-400 mb-4">{error}</div>}
+                    
+                    {loading ? (
+                        <div className="animate-pulse flex flex-col gap-4">
+                            {[1,2,3].map(i => (
+                                <div key={i} className="h-16 bg-gray-800 rounded-xl w-full" />
+                            ))}
+                        </div>
+                    ) : blocks.length === 0 ? (
+                        <div className="text-center py-10 flex flex-col items-center">
+                            <ShieldCheck size={48} className="text-green-500 mb-4 opacity-50" />
+                            <p className="text-gray-400 text-lg">You haven't blocked anyone.</p>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-3">
+                            {blocks.map(user => (
+                                <div key={user.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-xl border border-gray-700/50">
+                                    <div>
+                                        <p className="font-medium text-lg">User #{user.id}</p>
+                                        <p className="text-sm text-gray-400">Blocked on {new Date(user.created_at).toLocaleDateString()}</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => handleUnblock(user.id)}
+                                        className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
+                                    >
+                                        Unblock
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { cn } from "../lib/utils"
 import { Heading } from "../components/ui/Heading"
 import { Text } from "../components/ui/Text"
@@ -30,7 +30,11 @@ export default function CreateRoom() {
   function toggleTopic(topic: string) {
     setSelected((prev) => {
       const next = new Set(prev)
-      next.has(topic) ? next.delete(topic) : next.add(topic)
+      if (next.has(topic)) {
+        next.delete(topic)
+      } else {
+        next.add(topic)
+      }
       return next
     })
   }
@@ -144,21 +148,18 @@ export default function CreateRoom() {
                   {TOPICS.map((topic) => {
                     const isActive = selectedTopics.has(topic)
                     return (
-                      <button
+                      <Button
                         key={topic}
                         type="button"
+                        variant={isActive ? "primary" : "secondary"}
+                        size="sm"
                         onClick={() => toggleTopic(topic)}
                         aria-pressed={isActive}
                         aria-label={`${isActive ? "Deselect" : "Select"} topic: ${topic}`}
-                        className={cn(
-                          "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2",
-                          isActive
-                            ? "border-transparent bg-brand-primary text-text-inverse hover:bg-brand-hover"
-                            : "border-border-default bg-surface text-text-secondary hover:border-border-strong hover:text-text-primary"
-                        )}
+                        className="rounded-full"
                       >
                         {topic}
-                      </button>
+                      </Button>
                     )
                   })}
                 </div>
