@@ -36,8 +36,16 @@ export class GroupPeerManager {
             this.closePeer(targetUserId);
         }
 
+        const iceServers = import.meta.env.VITE_TURN_URL ? [
+            {
+                urls: import.meta.env.VITE_TURN_URL,
+                username: import.meta.env.VITE_TURN_USERNAME,
+                credential: import.meta.env.VITE_TURN_PASSWORD
+            }
+        ] : [{ urls: 'stun:stun.l.google.com:19302' }];
+
         const pc = new RTCPeerConnection({
-            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            iceServers
         });
         
         this.peers.set(targetUserId, pc);

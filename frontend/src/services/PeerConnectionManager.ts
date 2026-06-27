@@ -22,10 +22,16 @@ export class PeerConnectionManager {
 
         useSignalingStore.getState().setState('CREATED');
 
+        const iceServers = import.meta.env.VITE_TURN_URL ? [
+            {
+                urls: import.meta.env.VITE_TURN_URL,
+                username: import.meta.env.VITE_TURN_USERNAME,
+                credential: import.meta.env.VITE_TURN_PASSWORD
+            }
+        ] : [{ urls: 'stun:stun.l.google.com:19302' }];
+
         this.pc = new RTCPeerConnection({
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' }
-            ]
+            iceServers
         });
 
         this.pc.onicecandidate = (event) => {
