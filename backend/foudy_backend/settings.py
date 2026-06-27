@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'django.contrib.staticfiles',
     'cloudinary',
+    'anymail',
     
     # Third party
     'rest_framework',
@@ -152,3 +153,15 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=True)
+
+# Email Configuration
+EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+ANYMAIL = {
+    "RESEND_API_KEY": env('RESEND_API_KEY', default='')
+}
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='onboarding@resend.dev')
+
+# Explicit Cloudinary Storage Configuration
+CLOUDINARY_STORAGE = {
+    'CLOUDINARY_URL': env('CLOUDINARY_URL', default='')
+}

@@ -19,7 +19,7 @@ class ModerationError(Exception):
 
 class ModerationRedisClient:
     def __init__(self):
-        redis_url = settings.CACHES['default'].get('LOCATION', 'redis://127.0.0.1:6379/1')
+        redis_url = settings.CACHES['default'].get('LOCATION', getattr(settings, 'REDIS_URL', 'redis://127.0.0.1:6379/1'))
         if isinstance(redis_url, list):
             redis_url = redis_url[0]
         self.redis = redis.Redis.from_url(redis_url, decode_responses=True)
@@ -55,6 +55,15 @@ class ModerationRedisClient:
         if not self.redis.exists(key):
             self.refresh_block_cache(user_id)
         return self.redis.smembers(key)
+
+    def is_blocked(self, user_id, target_user_id) -> bool:
+        """
+        Returns True if `target_user_id` is in `user_id`'s blocked list (either blocked by or blocking).
+        """
+        key = self.get_blocked_cache_key(user_id)
+        if not self.redis.exists(key):
+            self.refresh_block_cache(user_id)
+        return self.redis.sismember(key, str(target_user_id))
 
 class BlockService:
     def __init__(self):
@@ -136,7 +145,7 @@ class BlockService:
 
 class ReportService:
     def __init__(self):
-        redis_url = settings.CACHES['default'].get('LOCATION', 'redis://127.0.0.1:6379/1')
+        redis_url = settings.CACHES['default'].get('LOCATION', getattr(settings, 'REDIS_URL', 'redis://127.0.0.1:6379/1'))
         if isinstance(redis_url, list):
             redis_url = redis_url[0]
         self.redis = redis.Redis.from_url(redis_url, decode_responses=True)
@@ -173,6 +182,6 @@ class ReportService:
             action=AuditLog.Action.REPORT,
             actor_id=reporter_id,
             target_id=reported_id,
-            details={"reason": reason, "report_id": report.id, "extra_details": details}
+            details={"reason": reason, "report_id": str(report.id), "extra_details": details}
         )
         return report

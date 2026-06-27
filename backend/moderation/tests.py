@@ -9,9 +9,12 @@ from .services import BlockService, ReportService, ModerationError
 
 User = get_user_model()
 
-@patch('moderation.services.redis.Redis.from_url')
 class ModerationServiceTests(TestCase):
     def setUp(self):
+        self.redis_patcher = patch('moderation.services.redis.Redis.from_url')
+        self.mock_redis = self.redis_patcher.start()
+        self.addCleanup(self.redis_patcher.stop)
+
         self.user1 = User.objects.create_user(email="user1@example.com", password="pw")
         self.user2 = User.objects.create_user(email="user2@example.com", password="pw")
         self.block_service = BlockService()
@@ -22,7 +25,7 @@ class ModerationServiceTests(TestCase):
 
     @patch('moderation.services.ModerationRedisClient.refresh_block_cache')
     @patch('moderation.services.BlockService._terminate_active_session')
-    def test_block_user(self, mock_terminate, mock_refresh, mock_redis):
+    def test_block_user(self, mock_terminate, mock_refresh):
         self.block_service.block_user(self.user1.id, self.user2.id)
         
         self.assertTrue(Block.objects.filter(blocker=self.user1, blocked=self.user2).exists())
@@ -32,8 +35,8 @@ class ModerationServiceTests(TestCase):
         with self.assertRaises(ModerationError):
             self.block_service.block_user(self.user1.id, self.user1.id)
 
-    def test_report_user(self, mock_redis):
-        mock_redis_instance = mock_redis.return_value
+    def test_report_user(self):
+        mock_redis_instance = self.mock_redis.return_value
         mock_redis_instance.incr.return_value = 1
         mock_redis_instance.exists.return_value = False
         
@@ -47,17 +50,17 @@ class ModerationServiceTests(TestCase):
             self.report_service.report_user(self.user1.id, self.user2.id, "Spam")
         self.assertEqual(e.exception.code, 409)
 
-    def test_block_api(self, mock_redis):
-        response = self.client.post(f'/api/moderation/block/{self.user2.id}/')
+    def test_block_api(self):
+        response = self.client.post(f'/api/v1/moderation/block/{self.user2.id}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(Block.objects.filter(blocker=self.user1, blocked=self.user2).exists())
 
-    def test_report_api(self, mock_redis):
-        mock_redis_instance = mock_redis.return_value
+    def test_report_api(self):
+        mock_redis_instance = self.mock_redis.return_value
         mock_redis_instance.incr.return_value = 1
         mock_redis_instance.exists.return_value = False
 
-        response = self.client.post(f'/api/moderation/report/{self.user2.id}/', {
+        response = self.client.post(f'/api/v1/moderation/report/{self.user2.id}/', {
             "reason": "Harassment",
             "details": "Said mean things"
         })

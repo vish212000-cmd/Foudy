@@ -3,10 +3,11 @@ from django.conf import settings
 from typing import List, Dict, Optional, Set
 import json
 import time
+import uuid
 
 class RedisRoomRepository:
     def __init__(self):
-        redis_url = settings.CACHES['default'].get('LOCATION', 'redis://127.0.0.1:6379/1')
+        redis_url = settings.CACHES['default'].get('LOCATION', getattr(settings, 'REDIS_URL', 'redis://127.0.0.1:6379/1'))
         if isinstance(redis_url, list):
             redis_url = redis_url[0]
         self.redis = redis.Redis.from_url(redis_url, decode_responses=True)
@@ -62,17 +63,17 @@ class RedisRoomRepository:
             data['settings'] = json.loads(data['settings'])
         return data
 
-    def get_host(self, room_id: int) -> Optional[int]:
+    def get_host(self, room_id) -> Optional[uuid.UUID]:
         host = self.redis.get(self._k_host(room_id))
-        return int(host) if host else None
+        return uuid.UUID(host) if host else None
 
     def set_host(self, room_id: int, user_id: int):
         self.redis.set(self._k_host(room_id), user_id, ex=self.ttl)
 
     # Participants
-    def get_participants(self, room_id: int) -> Set[int]:
+    def get_participants(self, room_id) -> Set[uuid.UUID]:
         parts = self.redis.smembers(self._k_parts(room_id))
-        return {int(p) for p in parts}
+        return {uuid.UUID(p) for p in parts}
 
     def get_participant_count(self, room_id: int) -> int:
         return self.redis.scard(self._k_parts(room_id))
@@ -92,9 +93,9 @@ class RedisRoomRepository:
     def create_invite(self, room_id: int, invite_code: str, ttl: int = 3600):
         self.redis.set(self._k_invite(invite_code), room_id, ex=ttl)
 
-    def get_room_by_invite(self, invite_code: str) -> Optional[int]:
+    def get_room_by_invite(self, invite_code: str) -> Optional[uuid.UUID]:
         room_id = self.redis.get(self._k_invite(invite_code))
-        return int(room_id) if room_id else None
+        return uuid.UUID(room_id) if room_id else None
 
     def revoke_invite(self, invite_code: str):
         self.redis.delete(self._k_invite(invite_code))

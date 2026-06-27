@@ -28,4 +28,4 @@ daphne
 whitenoise
 cloudinary
 django-cloudinary-storage
-resend
+django-anymail[resend]

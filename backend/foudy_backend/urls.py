@@ -13,7 +13,7 @@ urlpatterns = [
     path('api/v1/auth/', include('accounts.urls')),
     path('api/v1/users/', include('profiles.urls')),
     path('api/matching/', include('matching.urls')),
-    path('api/moderation/', include('moderation.urls')),
+    path('api/v1/moderation/', include('moderation.urls')),
 ]
 
 if settings.DEBUG:

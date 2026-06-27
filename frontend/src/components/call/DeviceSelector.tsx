@@ -39,10 +39,10 @@ export const DeviceSelector: React.FC = () => {
                     <select
                         className="bg-gray-800 text-white text-sm rounded-lg border-none py-2 px-3 focus:ring-2 focus:ring-blue-500 outline-none"
                         value={activeMicrophoneId || ''}
-                        onChange={(e) => {
+                        onChange={() => {
                             // Implement switchMicrophone in MediaService later if needed. 
                             // For now, restarting local media handles it or we can add switchMicrophone method.
-                            console.log("Switching mic to", e.target.value);
+
                         }}
                     >
                         {devices.audioinput.map((device) => (

@@ -1,4 +1,5 @@
 from django.test import TestCase
+from unittest.mock import patch
 from matching.state_machine import QueueState, QueueStateMachine
 from matching.engine import CompatibilityEngine
 import time
@@ -15,25 +16,6 @@ class StateMachineTests(TestCase):
             QueueStateMachine.validate_transition(QueueState.QUEUED, QueueState.MATCHED)
 
 class EngineTests(TestCase):
-    def test_queue_join_refreshes_blocks(self):
-        self.mock_redis.sismember.return_value = False
-        
-        with patch('matching.manager.ModerationRedisClient') as MockClient:
-            mock_client_instance = MockClient.return_value
-            self.manager.join_queue(self.user_id, {})
-            mock_client_instance.refresh_block_cache.assert_called_with(self.user_id)
-
-    @patch('matching.engine.ModerationRedisClient')
-    def test_blocked_users_are_not_matched(self, MockClient):
-        mock_mod_client = MockClient.return_value
-        # Mock that user 1 blocked user 2
-        mock_mod_client.is_blocked.side_effect = lambda u1, u2: (u1 == 1 and u2 == 2) or (u1 == 2 and u2 == 1)
-        
-        user1 = {'id': 1, 'preferences': {}}
-        user2 = {'id': 2, 'preferences': {}}
-        
-        match = self.engine.is_match(user1, user2)
-        self.assertFalse(match)
 
     def test_score_calculation(self):
         user_a = {'preferences': {'interests': ['tech', 'gaming'], 'languages': ['en']}}

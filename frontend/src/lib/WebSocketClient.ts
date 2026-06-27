@@ -18,7 +18,7 @@ export class WebSocketClient {
         this.ws = new WebSocket(this.url);
 
         this.ws.onopen = () => {
-            console.log('WebSocket connected');
+
             this.reconnectAttempts = 0;
             this.emit('system:connected', null);
         };
@@ -35,7 +35,7 @@ export class WebSocketClient {
         };
 
         this.ws.onclose = () => {
-            console.log('WebSocket disconnected');
+
             this.handleReconnect();
         };
     }

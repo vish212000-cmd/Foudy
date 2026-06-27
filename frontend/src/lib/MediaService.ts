@@ -21,9 +21,9 @@ export class MediaService {
         return this.localStream;
     }
 
-    async connectToRoom(roomId: string, _token: string): Promise<void> {
+    async connectToRoom(): Promise<void> {
         // Here we can dynamically decide P2P vs SFU based on room capacity returned by backend
-        console.log(`Connecting to media room ${roomId} using abstracted layer.`);
+
     }
     
     stopLocalStream() {
