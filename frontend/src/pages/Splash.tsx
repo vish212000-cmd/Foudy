@@ -1,10 +1,27 @@
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../store/auth'
 import { Spinner } from '../components/ui/Spinner'
 
 /**
  * Splash — Full-screen animated loading screen shown on first app load.
- * Standalone: no router deps, no AuthLayout.
+ * Redirects to /welcome or /profile once auth check completes.
  */
 export function Splash() {
+  const { isLoading, isAuthenticated } = useAuthStore()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // Only redirect once the initial auth check is done
+    if (!isLoading) {
+      if (isAuthenticated) {
+        navigate('/profile', { replace: true })
+      } else {
+        navigate('/welcome', { replace: true })
+      }
+    }
+  }, [isLoading, isAuthenticated, navigate])
+
   return (
     <main
       className="min-h-screen w-full bg-canvas flex flex-col items-center justify-center gap-6 px-4"

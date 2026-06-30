@@ -1,10 +1,14 @@
 import React from 'react';
 import { useSocketStore } from '../../store/socket';
+import { useAuthStore } from '../../store/auth';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Text } from '../ui/Text';
 
 export const ReconnectBanner: React.FC = () => {
     const { status } = useSocketStore();
+    const { isAuthenticated } = useAuthStore();
+
+    if (!isAuthenticated) return null;
     
     if (status === 'offline') {
         return (
