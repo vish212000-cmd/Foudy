@@ -5,6 +5,7 @@ import { router } from './router'
 import { RealtimeProvider } from "./providers/RealtimeProvider";
 import { ConnectionIndicator } from "./components/realtime/ConnectionIndicator";
 import { ReconnectBanner } from "./components/realtime/ReconnectBanner";
+import { CookieConsent } from "./components/CookieConsent";
 
 function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth)
@@ -17,6 +18,7 @@ function App() {
     <RealtimeProvider>
       <ConnectionIndicator />
       <ReconnectBanner />
+      <CookieConsent />
       <RouterProvider router={router} />
     </RealtimeProvider>
   )

@@ -1,131 +1,78 @@
-import * as React from "react"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { X } from "lucide-react"
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../../lib/utils';
+import { X } from 'lucide-react';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 
-import { cn } from "../../lib/utils"
-
-const Drawer = DialogPrimitive.Root
-const DrawerTrigger = DialogPrimitive.Trigger
-const DrawerClose = DialogPrimitive.Close
-const DrawerPortal = DialogPrimitive.Portal
-
-const DrawerOverlay = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    className={cn(
-      "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      className
-    )}
-    {...props}
-    ref={ref}
-  />
-))
-DrawerOverlay.displayName = DialogPrimitive.Overlay.displayName
-
-interface DrawerContentProps
-  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
-  side?: "top" | "bottom" | "left" | "right"
+export interface DrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  side?: 'left' | 'right' | 'top' | 'bottom';
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
 }
 
-const DrawerContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
-  DrawerContentProps
->(({ side = "right", className, children, ...props }, ref) => {
-  const sideVariants = {
-    top: "inset-x-0 top-0 border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
-    bottom:
-      "inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
-    left: "inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm",
-    right:
-      "inset-y-0 right-0 h-full w-3/4  border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
-  }
+export function Drawer({ isOpen, onClose, side = 'right', title, description, children, className }: DrawerProps) {
+  const slideVariants = {
+    closed: {
+      x: side === 'right' ? '100%' : side === 'left' ? '-100%' : 0,
+      y: side === 'bottom' ? '100%' : side === 'top' ? '-100%' : 0,
+    },
+    open: {
+      x: 0,
+      y: 0,
+    }
+  };
 
   return (
-    <DrawerPortal>
-      <DrawerOverlay />
-      <DialogPrimitive.Content
-        ref={ref}
-        className={cn(
-          "fixed z-50 gap-4 bg-surface p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
-          sideVariants[side],
-          className
+    <DialogPrimitive.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <AnimatePresence>
+        {isOpen && (
+          <DialogPrimitive.Portal forceMount>
+            <DialogPrimitive.Overlay asChild forceMount>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+              />
+            </DialogPrimitive.Overlay>
+            <DialogPrimitive.Content asChild forceMount>
+              <motion.div
+                initial="closed"
+                animate="open"
+                exit="closed"
+                variants={slideVariants}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className={cn(
+                  "fixed z-50 flex flex-col gap-4 bg-surface-elevated p-6 shadow-2xl outline-none",
+                  side === 'right' ? 'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l border-border-default' : '',
+                  side === 'left' ? 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r border-border-default' : '',
+                  side === 'top' ? 'inset-x-0 top-0 w-full border-b border-border-default' : '',
+                  side === 'bottom' ? 'inset-x-0 bottom-0 w-full border-t border-border-default rounded-t-2xl' : '',
+                  className
+                )}
+              >
+                {(title || description) && (
+                  <div className="flex flex-col gap-1">
+                    {title && <DialogPrimitive.Title className="text-lg font-semibold tracking-tight text-text-primary">{title}</DialogPrimitive.Title>}
+                    {description && <DialogPrimitive.Description className="text-sm text-text-secondary">{description}</DialogPrimitive.Description>}
+                  </div>
+                )}
+                <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                  {children}
+                </div>
+                <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-canvas transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 disabled:pointer-events-none">
+                  <X className="h-4 w-4" />
+                  <span className="sr-only">Close</span>
+                </DialogPrimitive.Close>
+              </motion.div>
+            </DialogPrimitive.Content>
+          </DialogPrimitive.Portal>
         )}
-        {...props}
-      >
-        {children}
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-canvas transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-surface-active">
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </DialogPrimitive.Close>
-      </DialogPrimitive.Content>
-    </DrawerPortal>
-  )
-})
-DrawerContent.displayName = DialogPrimitive.Content.displayName
-
-const DrawerHeader = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn(
-      "flex flex-col space-y-2 text-center sm:text-left",
-      className
-    )}
-    {...props}
-  />
-)
-DrawerHeader.displayName = "DrawerHeader"
-
-const DrawerFooter = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
-      className
-    )}
-    {...props}
-  />
-)
-DrawerFooter.displayName = "DrawerFooter"
-
-const DrawerTitle = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title
-    ref={ref}
-    className={cn("text-lg font-semibold text-text-primary", className)}
-    {...props}
-  />
-))
-DrawerTitle.displayName = DialogPrimitive.Title.displayName
-
-const DrawerDescription = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description
-    ref={ref}
-    className={cn("text-sm text-text-secondary", className)}
-    {...props}
-  />
-))
-DrawerDescription.displayName = DialogPrimitive.Description.displayName
-
-export {
-  Drawer,
-  DrawerPortal,
-  DrawerOverlay,
-  DrawerTrigger,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerFooter,
-  DrawerTitle,
-  DrawerDescription,
+      </AnimatePresence>
+    </DialogPrimitive.Root>
+  );
 }

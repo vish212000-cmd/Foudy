@@ -22,7 +22,7 @@ class Notification(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
     type = models.CharField(max_length=50, choices=Type.choices)
     content = models.TextField()
-    is_read = models.BooleanField(default=False)
+    is_read = models.BooleanField(default=False, db_index=True)
     payload = models.JSONField(default=dict, blank=True)
 
     def __str__(self):

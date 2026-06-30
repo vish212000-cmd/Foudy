@@ -1,6 +1,5 @@
 import * as React from "react"
 import { ChevronRight, MoreHorizontal } from "lucide-react"
-
 import { cn } from "../../lib/utils"
 
 const Breadcrumb = React.forwardRef<
@@ -18,7 +17,7 @@ const BreadcrumbList = React.forwardRef<
   <ol
     ref={ref}
     className={cn(
-      "flex flex-wrap items-center gap-1.5 break-words text-sm text-text-tertiary sm:gap-2.5",
+      "flex flex-wrap items-center gap-1.5 break-words text-sm text-text-secondary sm:gap-2.5",
       className
     )}
     {...props}
@@ -44,10 +43,8 @@ const BreadcrumbLink = React.forwardRef<
     asChild?: boolean
   }
 >(({ asChild, className, ...props }, ref) => {
-  const Comp = asChild ? React.Fragment : "a"
-
   return (
-    <Comp
+    <a
       ref={ref}
       className={cn("transition-colors hover:text-text-primary", className)}
       {...props}
@@ -101,7 +98,7 @@ const BreadcrumbEllipsis = ({
     <span className="sr-only">More</span>
   </span>
 )
-BreadcrumbEllipsis.displayName = "BreadcrumbEllipsis"
+BreadcrumbEllipsis.displayName = "BreadcrumbElipssis"
 
 export {
   Breadcrumb,

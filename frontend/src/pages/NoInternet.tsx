@@ -9,7 +9,7 @@ export function NoInternet() {
 
   const handleRetry = () => {
     setIsRetrying(true)
-    setTimeout(() => setIsRetrying(false), 1500)
+    window.location.reload()
   }
 
   return (

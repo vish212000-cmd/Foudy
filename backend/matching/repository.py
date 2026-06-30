@@ -3,6 +3,7 @@ import time
 from typing import Dict, Any, List, Optional
 from django.conf import settings
 from redis import Redis
+from core.redis import RedisTTL
 
 from .state_machine import QueueState, QueueStateMachine
 
@@ -73,7 +74,7 @@ class QueueRepository:
             data["entry_time"] = str(now)
             
         self.redis.hset(self._user_key(user_id), mapping=data)
-        self.redis.expire(self._user_key(user_id), 3600) # Expire in 1 hour if orphaned
+        self.redis.expire(self._user_key(user_id), RedisTTL.MATCHING_ORPHAN) # Expire in 1 hour if orphaned
 
     def update_state_only(self, user_id: int, current_state: QueueState, next_state: QueueState):
         """

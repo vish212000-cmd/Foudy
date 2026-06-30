@@ -39,10 +39,7 @@ export const CallControls: React.FC<Props> = ({ onToggleChat, isChatOpen }) => {
     const handleEndCall = () => {
         if (peerManager) {
             useCallStore.getState().setCallState('ENDING');
-            // Allow state to update UI, then trigger close via effect in layout or here
-            setTimeout(() => {
-                peerManager.close();
-            }, 500);
+            peerManager.close();
         }
     };
 

@@ -1,14 +1,8 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
-
 import { cn } from "../../lib/utils"
-import type { ButtonProps } from "./Button"
-import { Button } from "./Button"
 
-const Pagination = ({
-  className,
-  ...props
-}: React.ComponentProps<"nav">) => (
+const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
   <nav
     role="navigation"
     aria-label="pagination"
@@ -40,19 +34,25 @@ PaginationItem.displayName = "PaginationItem"
 
 type PaginationLinkProps = {
   isActive?: boolean
-} & ButtonProps
+  size?: "default" | "sm" | "lg"
+} & React.ComponentProps<"a">
 
 const PaginationLink = ({
   className,
   isActive,
-  size = "icon",
+  size = "default",
   ...props
 }: PaginationLinkProps) => (
-  <Button
+  <a
     aria-current={isActive ? "page" : undefined}
-    variant={isActive ? "secondary" : "ghost"}
-    size={size}
-    className={className}
+    className={cn(
+      "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-canvas transition-colors hover:bg-surface-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 cursor-pointer",
+      size === "default" && "h-10 w-10",
+      size === "sm" && "h-9 w-9",
+      size === "lg" && "h-11 w-11",
+      isActive ? "bg-surface-active text-text-primary font-semibold" : "text-text-secondary",
+      className
+    )}
     {...props}
   />
 )
@@ -64,7 +64,7 @@ const PaginationPrevious = ({
 }: React.ComponentProps<typeof PaginationLink>) => (
   <PaginationLink
     aria-label="Go to previous page"
-    size="md"
+    size="default"
     className={cn("gap-1 pl-2.5", className)}
     {...props}
   >
@@ -80,7 +80,7 @@ const PaginationNext = ({
 }: React.ComponentProps<typeof PaginationLink>) => (
   <PaginationLink
     aria-label="Go to next page"
-    size="md"
+    size="default"
     className={cn("gap-1 pr-2.5", className)}
     {...props}
   >
@@ -96,7 +96,7 @@ const PaginationEllipsis = ({
 }: React.ComponentProps<"span">) => (
   <span
     aria-hidden
-    className={cn("flex h-9 w-9 items-center justify-center", className)}
+    className={cn("flex h-9 w-9 items-center justify-center text-text-secondary", className)}
     {...props}
   >
     <MoreHorizontal className="h-4 w-4" />

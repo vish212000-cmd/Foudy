@@ -2,9 +2,15 @@ import { v4 as uuidv4 } from "uuid";
 import { useSocketStore } from "../store/socket";
 import { useSignalingStore } from "../store/signaling";
 import { useChatStore } from "../store/chat";
+import api from "./api";
 
 export class ChatService {
     constructor() {}
+
+    static async getMessages(roomId: string) {
+        const res = await api.get(`/chat/rooms/${roomId}/messages/`);
+        return res.data;
+    }
 
     private sendWithAck(event: string, payload: any) {
         const { status, sendMessage } = useSocketStore.getState();

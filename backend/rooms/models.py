@@ -13,13 +13,18 @@ class Room(BaseModel):
         CLOSED = 'CLOSED', 'Closed'
         DESTROYED = 'DESTROYED', 'Destroyed'
         
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.CREATED)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.CREATED, db_index=True)
     max_participants = models.IntegerField(default=10)
     closed_at = models.DateTimeField(null=True, blank=True)
     settings = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return f"Room {self.id} ({self.status})"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['status', 'created_at']),
+        ]
 
 class RoomParticipant(BaseModel):
     class Role(models.TextChoices):
@@ -45,6 +50,8 @@ class RoomParticipant(BaseModel):
 
     class Meta:
         unique_together = ('room', 'user')
-
+        indexes = [
+            models.Index(fields=['status', 'room']),
+        ]
     def __str__(self):
         return f"{self.user} in {self.room}"

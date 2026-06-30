@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   Radio,
   MessageSquare,
@@ -40,14 +41,16 @@ export function EmptyStatePage() {
   const [retrying, setRetrying] = useState(false)
   const [findingMatch, setFindingMatch] = useState(false)
 
+  const navigate = useNavigate()
+
   const handleRetry = () => {
     setRetrying(true)
-    setTimeout(() => setRetrying(false), 1500)
+    window.location.reload()
   }
 
   const handleFindMatch = () => {
     setFindingMatch(true)
-    setTimeout(() => setFindingMatch(false), 1500)
+    navigate('/match')
   }
 
   return (

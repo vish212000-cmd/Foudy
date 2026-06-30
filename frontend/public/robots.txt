@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /match/
+
+Sitemap: https://foudy.online/sitemap.xml

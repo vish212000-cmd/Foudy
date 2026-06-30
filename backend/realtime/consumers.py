@@ -65,6 +65,29 @@ class RealtimeGateway(AsyncWebsocketConsumer):
                 pass
 
     async def receive(self, text_data):
+        import time
+        
+        # Initialize rate limit counters on first message if missing
+        if not hasattr(self, '_msg_count'):
+            self._msg_count = 0
+            self._msg_last_reset = time.time()
+            
+        current_time = time.time()
+        # Reset counter every second
+        if current_time - self._msg_last_reset > 1.0:
+            self._msg_count = 0
+            self._msg_last_reset = current_time
+            
+        self._msg_count += 1
+        
+        # Limit to 20 messages per second per socket
+        if self._msg_count > 20:
+            await self.send_json({"event": "error", "payload": {"message": "Rate limit exceeded"}})
+            # Optionally close connection if excessively spamming
+            if self._msg_count > 50:
+                await self.close(code=4008)
+            return
+
         try:
             data = json.loads(text_data)
             event = data.get('event')

@@ -42,11 +42,22 @@ class AvatarUploadView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
+    @extend_schema(responses={200: UserSerializer})
     def post(self, request):
         if 'avatar' not in request.FILES:
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         
         avatar_file = request.FILES['avatar']
+        
+        # Security: validate file size (5MB max)
+        if avatar_file.size > 5 * 1024 * 1024:
+            return Response({'error': 'File too large. Maximum size is 5MB.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Security: validate mime type
+        allowed_mimes = ['image/jpeg', 'image/png', 'image/webp']
+        if avatar_file.content_type not in allowed_mimes:
+            return Response({'error': 'Invalid file type. Only JPEG, PNG, and WebP are allowed.'}, status=status.HTTP_400_BAD_REQUEST)
+            
         try:
             img = Image.open(avatar_file)
             # Crop to square and resize

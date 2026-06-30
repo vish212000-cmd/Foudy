@@ -149,21 +149,21 @@
   }
 
   .dark {
-    /* Dark Theme (Foudy) */
-    --bg-canvas: #09090B; /* Deep dark */
-    --bg-surface: #18181B; /* Zinc 900 */
-    --bg-surface-hover: #27272A; /* Zinc 800 */
-    --bg-surface-active: #3F3F46; /* Zinc 700 */
-    --bg-surface-elevated: #27272A;
+    /* Dark Theme (Foudy Premium) */
+    --bg-canvas: #070B13; /* Deep dark background */
+    --bg-surface: #111827; /* Card background */
+    --bg-surface-hover: rgba(255, 255, 255, 0.05); /* Hover state */
+    --bg-surface-active: rgba(255, 255, 255, 0.1);
+    --bg-surface-elevated: #1F2937;
 
-    --text-primary: #FAFAFA;
-    --text-secondary: #A1A1AA;
-    --text-tertiary: #71717A;
-    --text-inverse: #18181B;
+    --text-primary: #F9FAFB;
+    --text-secondary: #9CA3AF;
+    --text-tertiary: #6B7280;
+    --text-inverse: #030712;
 
-    --border-subtle: #27272A;
-    --border-default: #3F3F46;
-    --border-strong: #52525B;
+    --border-subtle: rgba(255, 255, 255, 0.04);
+    --border-default: rgba(255, 255, 255, 0.08); /* Required border */
+    --border-strong: rgba(255, 255, 255, 0.15);
 
     --brand-primary: #3B82F6; /* Lighter Cobalt for dark mode */
     --brand-hover: #60A5FA;
@@ -195,4 +195,39 @@
     background-color: var(--brand-primary);
     color: var(--text-inverse);
   }
+}
+
+@layer utilities {
+  .animate-accordion-down {
+    animation: accordion-down 0.2s ease-out;
+  }
+  .animate-accordion-up {
+    animation: accordion-up 0.2s ease-out;
+  }
+  .animate-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+  .animate-out {
+    animation: fadeOut 0.2s ease-in;
+  }
+}
+
+@keyframes accordion-down {
+  from { height: 0; opacity: 0; }
+  to { height: var(--radix-accordion-content-height); opacity: 1; }
+}
+
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); opacity: 1; }
+  to { height: 0; opacity: 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  to { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
 }

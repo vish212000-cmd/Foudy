@@ -1,0 +1,22 @@
+export const countries = [
+  { value: "IN", label: "India", flag: "🇮🇳", code: "+91" },
+  { value: "US", label: "United States", flag: "🇺🇸", code: "+1" },
+  { value: "GB", label: "United Kingdom", flag: "🇬🇧", code: "+44" },
+  { value: "CA", label: "Canada", flag: "🇨🇦", code: "+1" },
+  { value: "AU", label: "Australia", flag: "🇦🇺", code: "+61" },
+  { value: "DE", label: "Germany", flag: "🇩🇪", code: "+49" },
+  { value: "FR", label: "France", flag: "🇫🇷", code: "+33" },
+  { value: "JP", label: "Japan", flag: "🇯🇵", code: "+81" },
+  { value: "CN", label: "China", flag: "🇨🇳", code: "+86" },
+  { value: "BR", label: "Brazil", flag: "🇧🇷", code: "+55" },
+  { value: "ZA", label: "South Africa", flag: "🇿🇦", code: "+27" },
+  { value: "MX", label: "Mexico", flag: "🇲🇽", code: "+52" },
+  { value: "IT", label: "Italy", flag: "🇮🇹", code: "+39" },
+  { value: "ES", label: "Spain", flag: "🇪🇸", code: "+34" },
+  { value: "KR", label: "South Korea", flag: "🇰🇷", code: "+82" },
+  { value: "NL", label: "Netherlands", flag: "🇳🇱", code: "+31" },
+  { value: "SE", label: "Sweden", flag: "🇸🇪", code: "+46" },
+  { value: "CH", label: "Switzerland", flag: "🇨🇭", code: "+41" },
+  { value: "SG", label: "Singapore", flag: "🇸🇬", code: "+65" },
+  { value: "NZ", label: "New Zealand", flag: "🇳🇿", code: "+64" }
+];

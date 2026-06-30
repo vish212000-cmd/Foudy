@@ -19,7 +19,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
         <textarea
           className={cn(
-            "flex min-h-[80px] w-full rounded-md border border-border-default bg-surface px-3 py-2 text-sm ring-offset-canvas placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-shadow hover:border-border-strong",
+            "flex min-h-[80px] w-full rounded-md border border-border-default bg-surface px-3 py-2 text-base md:text-sm text-text-primary ring-offset-canvas placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors hover:border-border-strong",
             error && "border-danger-bg focus-visible:ring-danger-bg",
             className
           )}

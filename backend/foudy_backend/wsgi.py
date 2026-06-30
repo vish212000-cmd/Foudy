@@ -14,3 +14,10 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'foudy_backend.settings')
 
 application = get_wsgi_application()
+
+try:
+    from core.shutdown import register_shutdown_handlers
+    register_shutdown_handlers()
+except ImportError:
+    pass
+

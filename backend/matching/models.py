@@ -7,7 +7,12 @@ class MatchQueue(BaseModel):
     score = models.IntegerField(default=0)
     preferences = models.JSONField(default=dict)
     matched_at = models.DateTimeField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
 
     def __str__(self):
         return f"Queue entry for {self.user}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['is_active', 'score', 'created_at']),
+        ]

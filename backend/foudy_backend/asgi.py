@@ -7,6 +7,12 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'foudy_backend.settings')
 
 django_asgi_app = get_asgi_application()
 
+try:
+    from core.shutdown import register_shutdown_handlers
+    register_shutdown_handlers()
+except ImportError:
+    pass
+
 from realtime.middleware import JWTAuthMiddleware
 import realtime.routing
 

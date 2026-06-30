@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 from rooms.repositories.redis_repo import RedisRoomRepository
+from core.redis import RedisTTL
 
 class MediaCoordinator:
     """Coordinates media states (mute/unmute) across a group."""
@@ -10,7 +11,7 @@ class MediaCoordinator:
         """media_type: 'audio' | 'video'"""
         key = f"room:{room_id}:media:{user_id}"
         self.redis_repo.redis.hset(key, media_type, '1' if enabled else '0')
-        self.redis_repo.redis.expire(key, 86400)
+        self.redis_repo.redis.expire(key, RedisTTL.ROOM_MEDIA_STATE)
 
     def get_media_state(self, room_id: int, user_id: int) -> Dict[str, bool]:
         key = f"room:{room_id}:media:{user_id}"
@@ -29,4 +30,4 @@ class QualityMonitor:
         # 1-100 score
         key = f"room:{room_id}:quality"
         self.redis_repo.redis.hset(key, str(user_id), str(quality_score))
-        self.redis_repo.redis.expire(key, 86400)
+        self.redis_repo.redis.expire(key, RedisTTL.ROOM_QUALITY_SCORE)

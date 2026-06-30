@@ -1,5 +1,22 @@
 from typing import Any
 
+class RedisTTL:
+    HOUR = 3600
+    DAY = 86400
+    WEEK = 604800
+    
+    CHAT_DEDUP = HOUR
+    MATCHING_ORPHAN = HOUR
+    MATCHING_LOCK = 10
+    MODERATION_BLOCK_CACHE = DAY
+    MODERATION_REPORT_RL = HOUR
+    MODERATION_REPORT_DUP = DAY
+    ROOM_MEDIA_STATE = DAY
+    ROOM_QUALITY_SCORE = DAY
+    
+    AUTH_RESET_TOKEN = 900 # 15 mins
+    AUTH_VERIFY_TOKEN = DAY
+
 class RedisNamespaces:
     # Matchmaking
     @staticmethod
@@ -24,3 +41,12 @@ class RedisNamespaces:
     @staticmethod
     def rate_limit(action: str, ip: str) -> str:
         return f"foudy:rate_limit:{action}:{ip}"
+        
+    # Auth
+    @staticmethod
+    def auth_reset_token(token: str) -> str:
+        return f"foudy:auth:reset:{token}"
+        
+    @staticmethod
+    def auth_verify_token(token: str) -> str:
+        return f"foudy:auth:verify:{token}"

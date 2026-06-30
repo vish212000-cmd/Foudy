@@ -6,6 +6,7 @@ from django.db.models import Q
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import redis
+from core.redis import RedisTTL
 
 from .models import Block, Report, AuditLog
 from signaling.manager import PeerRepository, PeerSessionState
@@ -45,7 +46,7 @@ class ModerationRedisClient:
         self.redis.delete(key)
         if blocked_ids:
             self.redis.sadd(key, *blocked_ids)
-            self.redis.expire(key, 86400) # Expire after 1 day
+            self.redis.expire(key, RedisTTL.MODERATION_BLOCK_CACHE) # Expire after 1 day
             
     def get_blocked_ids(self, user_id: int) -> set:
         """
@@ -159,7 +160,7 @@ class ReportService:
         rate_key = f"moderation:report_rl:{reporter_id}"
         count = self.redis.incr(rate_key)
         if count == 1:
-            self.redis.expire(rate_key, 3600)
+            self.redis.expire(rate_key, RedisTTL.MODERATION_REPORT_RL)
         elif count > 5:
             raise ModerationError("Report rate limit exceeded. Try again later.", code=429)
 
@@ -176,7 +177,7 @@ class ReportService:
         )
         
         # Mark as reported recently
-        self.redis.set(dup_key, "1", ex=86400)
+        self.redis.set(dup_key, "1", ex=RedisTTL.MODERATION_REPORT_DUP)
 
         AuditLog.objects.create(
             action=AuditLog.Action.REPORT,

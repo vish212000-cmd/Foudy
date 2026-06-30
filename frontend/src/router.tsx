@@ -4,29 +4,26 @@ import { GuestRoute } from './components/auth/GuestRoute'
 import { AppLayout } from './layouts/AppLayout'
 import { CallLayout } from './layouts/CallLayout'
 import { Splash } from './pages/Splash'
-import { Welcome } from './pages/Welcome'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import { Profile } from './pages/Profile'
-import { ProfileSetup } from './pages/ProfileSetup'
-import { Settings } from './pages/Settings'
-import RandomMatch from './pages/RandomMatch'
-import Searching from './pages/Searching'
-import MatchFound from './pages/MatchFound'
-import { BlockedUsers } from './pages/BlockedUsers'
-import { NoInternet } from './pages/NoInternet'
-import { ServerError } from './pages/ServerError'
-import { EmptyStatePage } from './pages/EmptyStatePage'
 
 export const router = createBrowserRouter([
   // ─── Splash / Onboarding ───────────────────────────────────────────────────
+  // Keep Splash eagerly loaded for immediate initial render
   { path: '/', element: <Splash /> },
-  { path: '/welcome', element: <Welcome /> },
+  { 
+    path: '/welcome', 
+    lazy: async () => ({ Component: (await import('./pages/Welcome')).Welcome }) 
+  },
   {
     element: <GuestRoute />,
     children: [
-      { path: '/login', element: <Login /> },
-      { path: '/register', element: <Register /> },
+      { 
+        path: '/login', 
+        lazy: async () => ({ Component: (await import('./pages/Login')).default }) 
+      },
+      { 
+        path: '/register', 
+        lazy: async () => ({ Component: (await import('./pages/Register')).default }) 
+      },
     ]
   },
 
@@ -37,21 +34,52 @@ export const router = createBrowserRouter([
       {
         element: <CallLayout />,
         children: [
-          { path: '/searching', element: <Searching /> },
-          { path: '/match-found', element: <MatchFound /> },
+          { 
+            path: '/searching', 
+            lazy: async () => ({ Component: (await import('./pages/Searching')).default }) 
+          },
+          { 
+            path: '/match-found', 
+            lazy: async () => ({ Component: (await import('./pages/MatchFound')).default }) 
+          },
         ],
       },
       // ─── App layout screens ───────────────────────────────────────────────────
       {
         element: <AppLayout />,
         children: [
-          { path: '/match', element: <RandomMatch /> },
-          { path: '/setup', element: <ProfileSetup /> },
-          { path: '/settings', element: <Settings /> },
-          { path: '/profile', element: <Profile /> },
-          { path: '/rooms', element: <div className="p-8"><h1 className="text-2xl font-bold">Rooms (Coming Soon)</h1></div> },
-          { path: '/chat', element: <div className="p-8"><h1 className="text-2xl font-bold">Messages (Coming Soon)</h1></div> },
-          { path: '/blocked', element: <BlockedUsers /> },
+          { 
+            path: '/home', 
+            lazy: async () => ({ Component: (await import('./pages/Home')).Home }) 
+          },
+          { 
+            path: '/match', 
+            lazy: async () => ({ Component: (await import('./pages/RandomMatch')).default }) 
+          },
+          { 
+            path: '/setup', 
+            lazy: async () => ({ Component: (await import('./pages/ProfileSetup')).ProfileSetup }) 
+          },
+          { 
+            path: '/settings', 
+            lazy: async () => ({ Component: (await import('./pages/Settings')).Settings }) 
+          },
+          { 
+            path: '/profile', 
+            lazy: async () => ({ Component: (await import('./pages/Profile')).Profile }) 
+          },
+          { 
+            path: '/rooms', 
+            lazy: async () => ({ Component: (await import('./pages/Rooms')).Rooms }) 
+          },
+          { 
+            path: '/chat', 
+            lazy: async () => ({ Component: (await import('./pages/Chat')).Chat }) 
+          },
+          { 
+            path: '/blocked', 
+            lazy: async () => ({ Component: (await import('./pages/BlockedUsers')).BlockedUsers }) 
+          },
           // Redirect unknown routes to profile for now to avoid broken nav
           { path: '*', element: <Navigate to="/profile" replace /> }
         ],
@@ -60,7 +88,24 @@ export const router = createBrowserRouter([
   },
 
   // ─── Standalone full-page screens ─────────────────────────────────────────
-  { path: '/no-internet', element: <NoInternet /> },
-  { path: '/server-error', element: <ServerError /> },
-  { path: '/empty', element: <EmptyStatePage /> },
+  { 
+    path: '/terms', 
+    lazy: async () => ({ Component: (await import('./pages/Terms')).Terms }) 
+  },
+  { 
+    path: '/privacy', 
+    lazy: async () => ({ Component: (await import('./pages/Privacy')).Privacy }) 
+  },
+  { 
+    path: '/no-internet', 
+    lazy: async () => ({ Component: (await import('./pages/NoInternet')).NoInternet }) 
+  },
+  { 
+    path: '/server-error', 
+    lazy: async () => ({ Component: (await import('./pages/ServerError')).ServerError }) 
+  },
+  { 
+    path: '/empty', 
+    lazy: async () => ({ Component: (await import('./pages/EmptyStatePage')).EmptyStatePage }) 
+  },
 ])

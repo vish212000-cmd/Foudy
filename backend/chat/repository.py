@@ -1,6 +1,7 @@
 import time
 import redis
 from django.conf import settings
+from core.redis import RedisTTL
 
 def get_redis_client() -> redis.Redis:
     redis_url = settings.CHANNEL_LAYERS['default']['CONFIG']['hosts'][0]
@@ -38,5 +39,5 @@ class ChatRepository:
             return False
             
         key = f"{self.dedup_prefix}{correlation_id}"
-        is_new = self.redis.set(key, "1", nx=True, ex=3600)  # Keep deduplication key for 1 hour
+        is_new = self.redis.set(key, "1", nx=True, ex=RedisTTL.CHAT_DEDUP)  # Keep deduplication key for 1 hour
         return not is_new
