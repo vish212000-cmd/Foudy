@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { useAuthStore } from '../store/auth';
 import { useSocketStore } from '../store/socket';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/realtime/';
+const WS_URL = import.meta.env.VITE_WS_URL;
 const HEARTBEAT_INTERVAL = 15000;
 const HEARTBEAT_TIMEOUT = 5000;
 

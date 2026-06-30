@@ -40,7 +40,8 @@ export function AvatarUploader({ currentAvatarUrl, fallbackText, onUpload, disab
     const getFullImageUrl = (path?: string | null) => {
         if (!path) return undefined;
         if (path.startsWith('http')) return path;
-        return `http://localhost:8000${path}`;
+        const baseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/api\/v1\/?$/, '');
+        return `${baseUrl}${path}`;
     };
 
     const displayUrl = previewUrl || getFullImageUrl(currentAvatarUrl);
