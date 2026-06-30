@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Loader2, Check } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { cn } from "../lib/utils"
 import { Heading } from "../components/ui/Heading"
 import { Text } from "../components/ui/Text"
@@ -30,7 +30,7 @@ const createRoomSchema = z.object({
   roomName: z.string().min(3, 'Room name must be at least 3 characters').max(60, 'Room name is too long'),
   description: z.string().max(200, 'Description is too long').optional(),
   roomType: z.enum(["public", "invite", "private"]),
-  maxParticipants: z.coerce.number().min(2, 'At least 2 participants').max(6, 'At most 6 participants'),
+  maxParticipants: z.number().min(2, 'At least 2 participants').max(6, 'At most 6 participants'),
   topics: z.array(z.string()).min(1, 'Select at least one topic'),
   videoEnabled: z.boolean(),
   audioEnabled: z.boolean()
@@ -203,7 +203,7 @@ export default function CreateRoom() {
                   aria-invalid={!!errors.maxParticipants}
                   error={errors.maxParticipants?.message}
                   disabled={isSubmitting}
-                  {...register("maxParticipants")}
+                  {...register("maxParticipants", { valueAsNumber: true })}
                 />
                 <Text
                   id="max-participants-hint"
