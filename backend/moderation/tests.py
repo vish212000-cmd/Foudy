@@ -9,6 +9,9 @@ from .services import BlockService, ReportService, ModerationError
 
 User = get_user_model()
 
+from django.test import TestCase, override_settings
+
+@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})
 class ModerationServiceTests(TestCase):
     def setUp(self):
         self.redis_patcher = patch('moderation.services.redis.Redis.from_url')

@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { AuthLayout } from '../layouts/AuthLayout'
 import { Button } from '../components/ui/Button'
 import { TextInput } from '../components/ui/TextInput'
@@ -11,6 +14,13 @@ import { Heading } from '../components/ui/Heading'
 import { Text } from '../components/ui/Text'
 import { AuthService } from '../services/auth'
 import { useAuthStore } from '../store/auth'
+
+const loginSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required')
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
 
 function FoudyLogo() {
   return (
@@ -54,29 +64,28 @@ export default function Login() {
   const navigate = useNavigate()
   const { setCredentials } = useAuthStore()
   const [rememberMe, setRememberMe] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [apiError, setApiError] = useState<string | null>(null)
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email || !password) {
-      setError('Please fill in all fields.')
-      return
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: ''
     }
+  })
 
-    setIsLoading(true)
-    setError(null)
-
+  const onSubmit = async (data: LoginFormValues) => {
+    setApiError(null)
     try {
-      const { user, access_token } = await AuthService.login({ email, password })
+      const { user, access_token } = await AuthService.login(data)
       setCredentials(user, access_token)
       navigate('/profile')
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to sign in. Please try again.')
-    } finally {
-      setIsLoading(false)
+      setApiError(err.response?.data?.error || 'Failed to sign in. Please check your credentials and try again.')
     }
   }
 
@@ -100,10 +109,10 @@ export default function Login() {
               Sign up
             </a>
           </Text>
-          {error && (
-            <Text variant="caption" className="text-destructive font-medium mt-2">
-              {error}
-            </Text>
+          {apiError && (
+            <div className="bg-danger-bg/10 text-danger-text text-sm font-medium p-3 rounded-md mt-2">
+              {apiError}
+            </div>
           )}
         </div>
 
@@ -111,7 +120,7 @@ export default function Login() {
           <form
             aria-label="Sign in form"
             noValidate
-            onSubmit={handleLogin}
+            onSubmit={handleSubmit(onSubmit)}
           >
             <div className="flex flex-col gap-5">
 
@@ -121,20 +130,20 @@ export default function Login() {
                 type="email"
                 placeholder="you@example.com"
                 autoComplete="email"
-                aria-required="true"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
+                aria-invalid={!!errors.email}
+                error={errors.email?.message}
+                disabled={isSubmitting}
+                {...register('email')}
               />
 
               <PasswordInput
                 id="password"
                 label="Password"
                 autoComplete="current-password"
-                aria-required="true"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
+                aria-invalid={!!errors.password}
+                error={errors.password?.message}
+                disabled={isSubmitting}
+                {...register('password')}
               />
 
               <div className="flex items-center justify-between gap-4">
@@ -172,9 +181,9 @@ export default function Login() {
                 size="md"
                 className="w-full mt-1"
                 aria-label="Sign in to your FOUDY account"
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
-                {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Sign in'}
+                {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : 'Sign in'}
               </Button>
             </div>
           </form>
@@ -237,3 +246,4 @@ export default function Login() {
     </AuthLayout>
   )
 }
+

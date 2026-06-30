@@ -1,4 +1,9 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Loader2, Check } from "lucide-react"
 import { cn } from "../lib/utils"
 import { Heading } from "../components/ui/Heading"
 import { Text } from "../components/ui/Text"
@@ -9,6 +14,7 @@ import { Switch } from "../components/ui/Switch"
 import { Button } from "../components/ui/Button"
 import { Card, CardContent } from "../components/ui/Card"
 import { Divider } from "../components/ui/Divider"
+import { roomService } from "../services/RoomService"
 
 // ── static data ──────────────────────────────────────────────────────────────
 const ROOM_TYPES = [
@@ -20,24 +26,72 @@ const ROOM_TYPES = [
 const TOPICS = ["Gaming", "Music", "Tech", "Art", "Sports", "Film"] as const
 const DEFAULT_SELECTED = new Set<string>(["Gaming", "Tech", "Sports"])
 
+const createRoomSchema = z.object({
+  roomName: z.string().min(3, 'Room name must be at least 3 characters').max(60, 'Room name is too long'),
+  description: z.string().max(200, 'Description is too long').optional(),
+  roomType: z.enum(["public", "invite", "private"]),
+  maxParticipants: z.coerce.number().min(2, 'At least 2 participants').max(6, 'At most 6 participants'),
+  topics: z.array(z.string()).min(1, 'Select at least one topic'),
+  videoEnabled: z.boolean(),
+  audioEnabled: z.boolean()
+})
+
+type CreateRoomFormValues = z.infer<typeof createRoomSchema>;
+
 // ── component ─────────────────────────────────────────────────────────────────
 export default function CreateRoom() {
-  const [roomType, setRoomType]         = useState<string>("public")
-  const [selectedTopics, setSelected]   = useState<Set<string>>(DEFAULT_SELECTED)
-  const [videoEnabled, setVideo]        = useState(true)
-  const [audioEnabled, setAudio]        = useState(true)
+  const navigate = useNavigate();
+  const [apiError, setApiError] = useState<string | null>(null);
+  
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting }
+  } = useForm<CreateRoomFormValues>({
+    resolver: zodResolver(createRoomSchema),
+    defaultValues: {
+      roomName: '',
+      description: '',
+      roomType: 'public',
+      maxParticipants: 6,
+      topics: Array.from(DEFAULT_SELECTED),
+      videoEnabled: true,
+      audioEnabled: true
+    }
+  });
+
+  const selectedTopics = watch("topics");
 
   function toggleTopic(topic: string) {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(topic)) {
-        next.delete(topic)
-      } else {
-        next.add(topic)
-      }
-      return next
-    })
+    const next = new Set(selectedTopics);
+    if (next.has(topic)) {
+      next.delete(topic);
+    } else {
+      next.add(topic);
+    }
+    setValue("topics", Array.from(next), { shouldValidate: true });
   }
+
+  const onSubmit = async (data: CreateRoomFormValues) => {
+    setApiError(null);
+    try {
+      const room = await roomService.createRoom(data.maxParticipants, {
+        name: data.roomName,
+        description: data.description,
+        type: data.roomType,
+        topics: data.topics,
+        videoEnabled: data.videoEnabled,
+        audioEnabled: data.audioEnabled
+      });
+      // Redirect to newly created room
+      navigate(`/room/${room.id}`);
+    } catch (error: any) {
+      setApiError(error.response?.data?.error || "Failed to create room.");
+    }
+  };
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
@@ -49,18 +103,26 @@ export default function CreateRoom() {
         <CardContent className="pt-6">
           <form
             aria-label="Create room form"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={handleSubmit(onSubmit)}
             noValidate
           >
+            {apiError && (
+              <div className="mb-6 p-3 bg-danger-bg/20 text-danger-text text-sm rounded-lg">
+                {apiError}
+              </div>
+            )}
+            
             <div className="space-y-5">
-
               {/* Room Name */}
               <TextInput
                 id="room-name"
                 label="Room Name"
                 placeholder="e.g. Gaming Talk"
                 autoComplete="off"
-                aria-required="true"
+                aria-invalid={!!errors.roomName}
+                error={errors.roomName?.message}
+                disabled={isSubmitting}
+                {...register("roomName")}
               />
 
               {/* Description */}
@@ -69,6 +131,10 @@ export default function CreateRoom() {
                 label="Description (optional)"
                 placeholder="What will you discuss?"
                 rows={3}
+                aria-invalid={!!errors.description}
+                error={errors.description?.message}
+                disabled={isSubmitting}
+                {...register("description")}
               />
 
               <Divider />
@@ -80,39 +146,46 @@ export default function CreateRoom() {
                     Room Type
                   </Text>
                 </legend>
-                <RadioGroup
-                  value={roomType}
-                  onValueChange={setRoomType}
-                  aria-label="Room type"
-                  className="gap-3"
-                >
-                  {ROOM_TYPES.map(({ value, label, description }) => (
-                    <label
-                      key={value}
-                      htmlFor={`room-type-${value}`}
-                      className={cn(
-                        "flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-all",
-                        roomType === value
-                          ? "border-brand-primary bg-brand-primary/5"
-                          : "border-border-default bg-surface hover:border-border-strong hover:bg-surface-hover"
-                      )}
+                <Controller
+                  control={control}
+                  name="roomType"
+                  render={({ field }) => (
+                    <RadioGroup
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      aria-label="Room type"
+                      className="gap-3"
                     >
-                      <RadioGroupItem
-                        id={`room-type-${value}`}
-                        value={value}
-                        className="mt-0.5 shrink-0"
-                      />
-                      <div className="flex flex-col gap-0.5">
-                        <Text variant="label" className="text-text-primary">
-                          {label}
-                        </Text>
-                        <Text variant="caption" className="text-text-secondary">
-                          {description}
-                        </Text>
-                      </div>
-                    </label>
-                  ))}
-                </RadioGroup>
+                      {ROOM_TYPES.map(({ value, label, description }) => (
+                        <label
+                          key={value}
+                          htmlFor={`room-type-${value}`}
+                          className={cn(
+                            "flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-all",
+                            field.value === value
+                              ? "border-brand-primary bg-brand-primary/5"
+                              : "border-border-default bg-surface hover:border-border-strong hover:bg-surface-hover",
+                            isSubmitting && "opacity-50 pointer-events-none"
+                          )}
+                        >
+                          <RadioGroupItem
+                            id={`room-type-${value}`}
+                            value={value}
+                            className="mt-0.5 shrink-0"
+                          />
+                          <div className="flex flex-col gap-0.5">
+                            <Text variant="label" className="text-text-primary">
+                              {label}
+                            </Text>
+                            <Text variant="caption" className="text-text-secondary">
+                              {description}
+                            </Text>
+                          </div>
+                        </label>
+                      ))}
+                    </RadioGroup>
+                  )}
+                />
               </fieldset>
 
               <Divider />
@@ -127,6 +200,10 @@ export default function CreateRoom() {
                   min={2}
                   max={6}
                   aria-describedby="max-participants-hint"
+                  aria-invalid={!!errors.maxParticipants}
+                  error={errors.maxParticipants?.message}
+                  disabled={isSubmitting}
+                  {...register("maxParticipants")}
                 />
                 <Text
                   id="max-participants-hint"
@@ -146,7 +223,7 @@ export default function CreateRoom() {
                 </Text>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Select topics">
                   {TOPICS.map((topic) => {
-                    const isActive = selectedTopics.has(topic)
+                    const isActive = selectedTopics.includes(topic)
                     return (
                       <Button
                         key={topic}
@@ -157,12 +234,18 @@ export default function CreateRoom() {
                         aria-pressed={isActive}
                         aria-label={`${isActive ? "Deselect" : "Select"} topic: ${topic}`}
                         className="rounded-full"
+                        disabled={isSubmitting}
                       >
                         {topic}
                       </Button>
                     )
                   })}
                 </div>
+                {errors.topics && (
+                  <Text variant="caption" className="text-danger-text mt-2 block">
+                    {errors.topics.message}
+                  </Text>
+                )}
               </div>
 
               <Divider />
@@ -180,11 +263,18 @@ export default function CreateRoom() {
                       Allow participants to share their camera
                     </Text>
                   </div>
-                  <Switch
-                    id="enable-video"
-                    checked={videoEnabled}
-                    onCheckedChange={setVideo}
-                    aria-label="Enable video"
+                  <Controller
+                    control={control}
+                    name="videoEnabled"
+                    render={({ field }) => (
+                      <Switch
+                        id="enable-video"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        aria-label="Enable video"
+                        disabled={isSubmitting}
+                      />
+                    )}
                   />
                 </div>
 
@@ -195,11 +285,18 @@ export default function CreateRoom() {
                       Allow participants to use their microphone
                     </Text>
                   </div>
-                  <Switch
-                    id="enable-audio"
-                    checked={audioEnabled}
-                    onCheckedChange={setAudio}
-                    aria-label="Enable audio"
+                  <Controller
+                    control={control}
+                    name="audioEnabled"
+                    render={({ field }) => (
+                      <Switch
+                        id="enable-audio"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        aria-label="Enable audio"
+                        disabled={isSubmitting}
+                      />
+                    )}
                   />
                 </div>
               </div>
@@ -208,11 +305,22 @@ export default function CreateRoom() {
 
               {/* Actions */}
               <div className="flex items-center justify-end gap-3 pt-1">
-                <Button type="button" variant="ghost" aria-label="Cancel and go back">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  aria-label="Cancel and go back"
+                  disabled={isSubmitting}
+                  onClick={() => navigate(-1)}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" aria-label="Create room">
-                  Create Room
+                <Button 
+                  type="submit" 
+                  variant="primary" 
+                  aria-label="Create room"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create Room"}
                 </Button>
               </div>
 

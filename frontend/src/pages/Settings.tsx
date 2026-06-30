@@ -4,6 +4,9 @@ import {
   User, Bell, Shield, Paintbrush, ShieldAlert, 
   Monitor, Moon, Sun, Loader2, Check
 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useAuthStore } from '../store/auth';
 import { AuthService } from '../services/auth';
 import { Button } from '../components/ui/Button';
@@ -16,16 +19,31 @@ type SettingsTab = 'account' | 'notifications' | 'appearance' | 'security' | 'da
 
 type TabDef = { id: string, label: string, icon: any, danger?: boolean };
 
+const upgradeSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Invalid email format'),
+  password: z.string().min(8, 'Password must be at least 8 characters')
+});
+
+type UpgradeFormValues = z.infer<typeof upgradeSchema>;
+
 export function Settings() {
   const { user, updateUser } = useAuthStore();
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
   
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<UpgradeFormValues>({
+    resolver: zodResolver(upgradeSchema),
+    defaultValues: {
+      email: '',
+      password: ''
+    }
+  });
 
   if (!user) return null;
 
@@ -37,19 +55,15 @@ export function Settings() {
     { id: 'danger', label: 'Danger Zone', icon: ShieldAlert, danger: true }
   ];
 
-  const handleUpgrade = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+  const onUpgradeSubmit = async (data: UpgradeFormValues) => {
+    setApiError(null);
     setSuccess(null);
     try {
-      const { user: updatedUser } = await AuthService.upgradeGuest({ email, password });
+      const { user: updatedUser } = await AuthService.upgradeGuest(data);
       updateUser(updatedUser);
       setSuccess('Account successfully upgraded!');
     } catch (err: any) {
-      setError(err.response?.data?.email?.[0] || err.response?.data?.error || 'Failed to upgrade account.');
-    } finally {
-      setIsLoading(false);
+      setApiError(err.response?.data?.email?.[0] || err.response?.data?.error || 'Failed to upgrade account.');
     }
   };
 
@@ -86,9 +100,9 @@ export function Settings() {
                       Claim this account by providing an email and password to save your progress permanently.
                     </p>
                     
-                    {error && (
+                    {apiError && (
                       <div className="mb-4 p-3 bg-danger-bg/20 text-danger-text text-sm rounded-lg">
-                        {error}
+                        {apiError}
                       </div>
                     )}
                     {success && (
@@ -97,23 +111,25 @@ export function Settings() {
                       </div>
                     )}
 
-                    <form onSubmit={handleUpgrade} className="space-y-4 max-w-sm">
+                    <form onSubmit={handleSubmit(onUpgradeSubmit)} className="space-y-4 max-w-sm">
                       <TextInput
                         label="Email Address"
                         type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
-                        required
+                        aria-invalid={!!errors.email}
+                        error={errors.email?.message}
+                        disabled={isSubmitting}
+                        {...register('email')}
                       />
                       <PasswordInput
                         label="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
+                        aria-invalid={!!errors.password}
+                        error={errors.password?.message}
+                        disabled={isSubmitting}
+                        {...register('password')}
                       />
-                      <Button type="submit" disabled={isLoading} className="w-full">
-                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Upgrade Account"}
+                      <Button type="submit" disabled={isSubmitting} className="w-full">
+                        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Upgrade Account"}
                       </Button>
                     </form>
                   </div>

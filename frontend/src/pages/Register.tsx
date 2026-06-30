@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { AuthLayout } from '../layouts/AuthLayout'
 import { Button } from '../components/ui/Button'
 import { TextInput } from '../components/ui/TextInput'
@@ -10,34 +13,48 @@ import { Text } from '../components/ui/Text'
 import { AuthService } from '../services/auth'
 import { useAuthStore } from '../store/auth'
 
+const registerSchema = z.object({
+  displayName: z.string().min(2, 'Display name must be at least 2 characters').max(30, 'Display name cannot exceed 30 characters'),
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+})
+
+type RegisterFormValues = z.infer<typeof registerSchema>
+
 export default function Register() {
   const navigate = useNavigate()
   const { setCredentials } = useAuthStore()
   
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [displayName, setDisplayName] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [apiError, setApiError] = useState<string | null>(null)
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email || !password || !displayName) {
-      setError('Please fill in all fields.')
-      return
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      displayName: '',
+      email: '',
+      password: ''
     }
+  })
 
-    setIsLoading(true)
-    setError(null)
-
+  const onSubmit = async (data: RegisterFormValues) => {
+    setApiError(null)
     try {
-      const { user, access_token } = await AuthService.register({ email, password, display_name: displayName })
+      const { user, access_token } = await AuthService.register({ 
+        email: data.email, 
+        password: data.password, 
+        display_name: data.displayName 
+      })
       setCredentials(user, access_token)
       navigate('/profile')
     } catch (err: any) {
-      setError(err.response?.data?.email?.[0] || err.response?.data?.password?.[0] || 'Failed to register. Please try again.')
-    } finally {
-      setIsLoading(false)
+      setApiError(err.response?.data?.email?.[0] || err.response?.data?.password?.[0] || err.response?.data?.error || 'Failed to register. Please try again.')
     }
   }
 
@@ -59,10 +76,10 @@ export default function Register() {
               Sign in
             </a>
           </Text>
-          {error && (
-            <Text variant="caption" className="text-destructive font-medium mt-2">
-              {error}
-            </Text>
+          {apiError && (
+            <div className="bg-danger-bg/10 text-danger-text text-sm font-medium p-3 rounded-md mt-2">
+              {apiError}
+            </div>
           )}
         </div>
 
@@ -70,7 +87,7 @@ export default function Register() {
           <form
             aria-label="Sign up form"
             noValidate
-            onSubmit={handleRegister}
+            onSubmit={handleSubmit(onSubmit)}
           >
             <div className="flex flex-col gap-5">
               
@@ -79,10 +96,10 @@ export default function Register() {
                 label="Display Name"
                 type="text"
                 placeholder="How should we call you?"
-                aria-required="true"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                disabled={isLoading}
+                aria-invalid={!!errors.displayName}
+                error={errors.displayName?.message}
+                disabled={isSubmitting}
+                {...register('displayName')}
               />
 
               <TextInput
@@ -91,20 +108,20 @@ export default function Register() {
                 type="email"
                 placeholder="you@example.com"
                 autoComplete="email"
-                aria-required="true"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
+                aria-invalid={!!errors.email}
+                error={errors.email?.message}
+                disabled={isSubmitting}
+                {...register('email')}
               />
 
               <PasswordInput
                 id="password"
                 label="Password"
                 autoComplete="new-password"
-                aria-required="true"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
+                aria-invalid={!!errors.password}
+                error={errors.password?.message}
+                disabled={isSubmitting}
+                {...register('password')}
               />
 
               <Button
@@ -113,9 +130,9 @@ export default function Register() {
                 size="md"
                 className="w-full mt-4"
                 aria-label="Sign up for a FOUDY account"
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
-                {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Create Account'}
+                {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : 'Create Account'}
               </Button>
             </div>
           </form>

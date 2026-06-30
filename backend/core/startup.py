@@ -27,54 +27,54 @@ def boot_diagnostics():
     try:
         env('SECRET_KEY')
         env('JWT_SECRET_KEY', default='fallback') # Or check settings.SIMPLE_JWT
-        print("[✓] Environment & Keys")
+        print("[PASS] Environment & Keys")
     except Exception as e:
-        print("[✗] Environment & Keys")
+        print("[FAIL] Environment & Keys")
         critical_failures.append(f"Missing required env: {e}")
 
     # 2. Database Connection (CRITICAL)
     try:
         connection.ensure_connection()
-        print("[✓] Database (PostgreSQL)")
+        print("[PASS] Database (PostgreSQL)")
     except Exception as e:
-        print("[✗] Database (PostgreSQL)")
+        print("[FAIL] Database (PostgreSQL)")
         critical_failures.append(f"Database error: {e}")
 
     # 3. Redis Connection (CRITICAL)
     try:
         r = redis.from_url(settings.REDIS_URL)
         r.ping()
-        print("[✓] Redis (Upstash/Cache)")
+        print("[PASS] Redis (Upstash/Cache)")
     except Exception as e:
-        print("[✗] Redis (Upstash/Cache)")
+        print("[FAIL] Redis (Upstash/Cache)")
         critical_failures.append(f"Redis error: {e}")
 
     # 4. Celery Broker (CRITICAL)
     if getattr(settings, 'CELERY_BROKER_URL', None):
-        print("[✓] Celery Broker")
+        print("[PASS] Celery Broker")
     else:
-        print("[✗] Celery Broker")
+        print("[FAIL] Celery Broker")
         critical_failures.append("CELERY_BROKER_URL is missing")
 
     # 5. Cloudinary (NON-CRITICAL / DEGRADED)
     if getattr(settings, 'CLOUDINARY_STORAGE', {}).get('CLOUDINARY_URL'):
-        print("[✓] Cloudinary Storage")
+        print("[PASS] Cloudinary Storage")
     else:
-        print("[!] Cloudinary Storage (Degraded)")
+        print("[WARN] Cloudinary Storage (Degraded)")
         degraded_services.append("CLOUDINARY_URL is missing")
 
     # 6. Resend Email (NON-CRITICAL / DEGRADED)
     if getattr(settings, 'ANYMAIL', {}).get('RESEND_API_KEY'):
-        print("[✓] Resend Email API")
+        print("[PASS] Resend Email API")
     else:
-        print("[!] Resend Email API (Degraded)")
+        print("[WARN] Resend Email API (Degraded)")
         degraded_services.append("RESEND_API_KEY is missing")
 
     # 7. TURN Server (NON-CRITICAL / DEGRADED)
     if env('TURN_SECRET', default=None) and env('TURN_URL', default=None):
-        print("[✓] TURN Server")
+        print("[PASS] TURN Server")
     else:
-        print("[!] TURN Server (Degraded)")
+        print("[WARN] TURN Server (Degraded)")
         degraded_services.append("TURN_SECRET or TURN_URL is missing")
 
     print("==================================================")
