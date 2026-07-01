@@ -71,9 +71,10 @@ async def user_journey(browser, user_id):
     await page.click("button[type='submit']")
     
     try:
-        await page.wait_for_url("**/profile**", timeout=15000)
+        # Wait for profile setup
+        await page.wait_for_url("**/setup**", timeout=15000)
         token = await page.evaluate("localStorage.getItem('token')")
-        print(f"[{user_id}] Registration successful, at profile page. Token: {token[:20] if token else 'NONE'}")
+        print(f"[{user_id}] Registration successful, at setup page. Token: {token[:20] if token else 'NONE'}")
     except Exception as e:
         print(f"[{user_id}] Registration failed: {e}")
         # Capture error text if any
@@ -117,7 +118,10 @@ async def user_journey(browser, user_id):
         await page.wait_for_url("**/home**", timeout=10000)
     except Exception as e:
         form_html = await page.locator("body").inner_html()
-        print(f"[{user_id}] Could not auto-save profile. Form HTML len: {len(form_html)}")
+        print(f"[{user_id}] Could not auto-save profile. Exception: {e}")
+        with open(f"{user_id}_html_dump.txt", "w", encoding="utf-8") as f:
+            f.write(form_html)
+        print(f"[{user_id}] Dumped HTML to {user_id}_html_dump.txt")
         with open(f"{user_id}_profile_html.txt", "w", encoding="utf-8") as f:
             f.write(form_html)
         

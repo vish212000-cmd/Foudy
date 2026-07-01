@@ -2,7 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth';
 
 export const GuestRoute = () => {
-    const { isAuthenticated, isLoading } = useAuthStore();
+    const { user, isAuthenticated, isLoading } = useAuthStore();
 
     if (isLoading) {
         return (
@@ -13,6 +13,9 @@ export const GuestRoute = () => {
     }
 
     if (isAuthenticated) {
+        if (user && !user.profile_completed) {
+            return <Navigate to="/setup" replace />;
+        }
         return <Navigate to="/home" replace />;
     }
 
