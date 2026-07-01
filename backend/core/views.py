@@ -25,7 +25,11 @@ def health_redis(request):
             parsed = urllib.parse.urlparse(settings.REDIS_URL)
             redis_host = parsed.hostname if parsed.hostname else "unknown"
             
-        return JsonResponse({"status": "unknown", "redis": "skipped_for_audit", "provider_host": redis_host})
+        cache.set('health_check', 'ok', timeout=5)
+        val = cache.get('health_check')
+        if val == 'ok':
+            return JsonResponse({"status": "healthy", "redis": "up", "provider_host": redis_host})
+        return JsonResponse({"status": "unhealthy", "error": "Redis write/read mismatch", "provider_host": redis_host}, status=503)
     except Exception as e:
         return JsonResponse({"status": "unhealthy", "error": str(e), "provider_host": redis_host if 'redis_host' in locals() else "unknown"}, status=503)
 
