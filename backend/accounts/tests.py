@@ -65,9 +65,9 @@ class RegistrationRuntimeTests(TestCase):
         response = self.client.post(self.verify_request_url, {'email': self.valid_payload['email']}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Outbox should have 1 email
-        self.assertEqual(len(mail.outbox), 1)
-        email_message = mail.outbox[0]
+        # Outbox should have 2 emails (1 from registration, 1 from explicit request)
+        self.assertEqual(len(mail.outbox), 2)
+        email_message = mail.outbox[1]
         self.assertEqual(email_message.to, [self.valid_payload['email']])
         self.assertIn('Verify', email_message.subject)
         self.assertTrue(mock_redis.setex.called)

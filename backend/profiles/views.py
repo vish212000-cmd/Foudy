@@ -93,7 +93,7 @@ class StatsView(APIView):
     @extend_schema(responses={200: dict})
     def get(self, request):
         return Response({
+            "total_matches": 0,
             "rooms_joined": 0,
-            "messages_sent": 0,
-            "total_match_time": 0
+            "time_talked": "0m"
         })

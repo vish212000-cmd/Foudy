@@ -3,11 +3,6 @@ from typing import Optional, Set
 from django.conf import settings
 import redis
 
-# We reuse the get_redis_client logic
-def get_redis_client() -> redis.Redis:
-    redis_url = settings.CHANNEL_LAYERS['default']['CONFIG']['hosts'][0]
-    return redis.from_url(redis_url)
-
 class PresenceState:
     OFFLINE = "OFFLINE"
     ONLINE = "ONLINE"
@@ -23,8 +18,15 @@ class RedisPresenceRepository:
     Manages user presence and multiple connections per user.
     Uses Redis Hashes for state, and Sets for active connection tracking.
     """
+    @property
+    def redis(self):
+        from core.redis_client import get_redis_client
+        client = get_redis_client()
+        if not client:
+            raise Exception("Redis is unavailable.")
+        return client
+
     def __init__(self):
-        self.redis = get_redis_client()
         self.presence_prefix = "foudy:presence:user:"
         self.conn_prefix = "foudy:presence:connections:"
         self.ttl = 30 # seconds

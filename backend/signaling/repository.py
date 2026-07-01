@@ -4,10 +4,6 @@ from typing import Optional, Dict, Any
 from django.conf import settings
 import redis
 
-def get_redis_client() -> redis.Redis:
-    redis_url = settings.CHANNEL_LAYERS['default']['CONFIG']['hosts'][0]
-    return redis.from_url(redis_url)
-
 class PeerSessionState:
     CREATED = "CREATED"
     NEGOTIATING = "NEGOTIATING"
@@ -22,8 +18,15 @@ class PeerRepository:
     Manages WebRTC PeerSession states in Redis.
     Key: foudy:signaling:match:<match_id>
     """
+    @property
+    def redis(self):
+        from core.redis_client import get_redis_client
+        client = get_redis_client()
+        if not client:
+            raise Exception("Redis is unavailable.")
+        return client
+
     def __init__(self):
-        self.redis = get_redis_client()
         self.prefix = "foudy:signaling:match:"
         self.ttl = 86400  # 24 hours max for a session
 

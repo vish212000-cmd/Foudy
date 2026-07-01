@@ -17,7 +17,16 @@ from django.conf import settings
 from core.redis import RedisNamespaces, RedisTTL
 import requests
 
-redis_client = redis.from_url(settings.REDIS_URL)
+from core.redis_client import get_redis_client
+
+class SafeRedisProxy:
+    def __getattr__(self, name):
+        client = get_redis_client()
+        if not client:
+            raise Exception("Redis is unavailable. Dependent feature disabled.")
+        return getattr(client, name)
+
+redis_client = SafeRedisProxy()
 logger = logging.getLogger('foudy.auth')
 
 from django.contrib.auth.tokens import default_token_generator

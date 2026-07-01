@@ -19,11 +19,13 @@ class ModerationError(Exception):
         super().__init__(self.message)
 
 class ModerationRedisClient:
-    def __init__(self):
-        redis_url = settings.CACHES['default'].get('LOCATION', getattr(settings, 'REDIS_URL', 'redis://127.0.0.1:6379/1'))
-        if isinstance(redis_url, list):
-            redis_url = redis_url[0]
-        self.redis = redis.Redis.from_url(redis_url, decode_responses=True)
+    @property
+    def redis(self):
+        from core.redis_client import get_redis_client
+        client = get_redis_client()
+        if not client:
+            raise ModerationError("Redis is unavailable.", code=503)
+        return client
 
     def get_blocked_cache_key(self, user_id: int) -> str:
         return f"moderation:blocks:{user_id}"
@@ -145,11 +147,13 @@ class BlockService:
                 )
 
 class ReportService:
-    def __init__(self):
-        redis_url = settings.CACHES['default'].get('LOCATION', getattr(settings, 'REDIS_URL', 'redis://127.0.0.1:6379/1'))
-        if isinstance(redis_url, list):
-            redis_url = redis_url[0]
-        self.redis = redis.Redis.from_url(redis_url, decode_responses=True)
+    @property
+    def redis(self):
+        from core.redis_client import get_redis_client
+        client = get_redis_client()
+        if not client:
+            raise ModerationError("Redis is unavailable.", code=503)
+        return client
 
     @transaction.atomic
     def report_user(self, reporter_id: int, reported_id: int, reason: str, details: str = ""):

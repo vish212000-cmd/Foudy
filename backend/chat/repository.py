@@ -3,17 +3,20 @@ import redis
 from django.conf import settings
 from core.redis import RedisTTL
 
-def get_redis_client() -> redis.Redis:
-    redis_url = settings.CHANNEL_LAYERS['default']['CONFIG']['hosts'][0]
-    return redis.from_url(redis_url)
-
 class ChatRepository:
     """
     Volatile Redis store for Chat rate-limiting and deduplication.
     No message history is persisted.
     """
+    @property
+    def redis(self):
+        from core.redis_client import get_redis_client
+        client = get_redis_client()
+        if not client:
+            raise Exception("Redis is unavailable.")
+        return client
+
     def __init__(self):
-        self.redis = get_redis_client()
         self.rate_limit_prefix = "foudy:chat:ratelimit:"
         self.dedup_prefix = "foudy:chat:dedup:"
         self.ttl = 86400

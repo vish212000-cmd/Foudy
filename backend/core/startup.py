@@ -40,14 +40,17 @@ def boot_diagnostics():
         print("[FAIL] Database (PostgreSQL)")
         critical_failures.append(f"Database error: {e}")
 
-    # 3. Redis Connection (CRITICAL)
+    # 3. Redis Connection (NON-CRITICAL / DEGRADED)
     try:
-        r = redis.from_url(settings.REDIS_URL)
+        from core.redis_client import get_redis_client
+        r = get_redis_client()
+        if r is None:
+            raise Exception("Invalid or missing REDIS_URL")
         r.ping()
         print("[PASS] Redis (Upstash/Cache)")
     except Exception as e:
-        print("[FAIL] Redis (Upstash/Cache)")
-        critical_failures.append(f"Redis error: {e}")
+        print("[WARN] Redis (Degraded)")
+        degraded_services.append(f"Redis is unavailable: {e}")
 
     # 4. Celery Broker (CRITICAL)
     if getattr(settings, 'CELERY_BROKER_URL', None):

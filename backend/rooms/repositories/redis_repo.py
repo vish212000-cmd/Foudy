@@ -7,11 +7,15 @@ import uuid
 
 class RedisRoomRepository:
     def __init__(self):
-        redis_url = settings.CACHES['default'].get('LOCATION', getattr(settings, 'REDIS_URL', 'redis://127.0.0.1:6379/1'))
-        if isinstance(redis_url, list):
-            redis_url = redis_url[0]
-        self.redis = redis.Redis.from_url(redis_url, decode_responses=True)
         self.ttl = 3600 * 24 # 24 hour max TTL for rooms
+
+    @property
+    def redis(self):
+        from core.redis_client import get_redis_client
+        client = get_redis_client()
+        if not client:
+            raise Exception("Redis is unavailable.")
+        return client
 
     # Key generators
     def _k_meta(self, room_id): return f"room:{room_id}"

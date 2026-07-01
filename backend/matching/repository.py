@@ -7,11 +7,7 @@ from core.redis import RedisTTL
 
 from .state_machine import QueueState, QueueStateMachine
 
-# We will initialize redis connection centrally or per repo instance.
-def get_redis_client() -> Redis:
-    import redis
-    redis_url = settings.CHANNEL_LAYERS['default']['CONFIG']['hosts'][0]
-    return redis.from_url(redis_url)
+
 
 class RedisQueueNamespaces:
     QUEUE = "foudy:matchmaking:queue"
@@ -22,8 +18,16 @@ class QueueRepository:
     """
     Repository pattern for managing Queue entities in Redis.
     """
+    @property
+    def redis(self):
+        from core.redis_client import get_redis_client
+        client = get_redis_client()
+        if not client:
+            raise Exception("Redis is unavailable.")
+        return client
+
     def __init__(self):
-        self.redis = get_redis_client()
+        pass
 
     def _user_key(self, user_id: int) -> str:
         return f"{RedisQueueNamespaces.USER_PREFIX}{user_id}"
@@ -93,8 +97,16 @@ class RedisQueue:
     """
     Abstractions for the actual matchmaking ZSET.
     """
+    @property
+    def redis(self):
+        from core.redis_client import get_redis_client
+        client = get_redis_client()
+        if not client:
+            raise Exception("Redis is unavailable.")
+        return client
+
     def __init__(self):
-        self.redis = get_redis_client()
+        pass
         self.queue_key = RedisQueueNamespaces.QUEUE
 
     def add_to_queue(self, user_id: int):

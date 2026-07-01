@@ -20,7 +20,12 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-=tam2-bodsicwhc(@-*6i3p#0yp@i5xub%xr5%3pqy#_8ac_p$')
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
-REDIS_URL = env('REDIS_URL')
+_raw_redis_url = env('REDIS_URL')
+# Ensure REDIS_URL is safely parsed and never empty or invalid during startup
+if not _raw_redis_url or not (_raw_redis_url.startswith('redis://') or _raw_redis_url.startswith('rediss://')):
+    REDIS_URL = 'redis://127.0.0.1:6379/1' # Safe fallback for local/build tasks
+else:
+    REDIS_URL = _raw_redis_url
 WSGI_APPLICATION = 'foudy_backend.wsgi.application'
 ASGI_APPLICATION = 'foudy_backend.asgi.application'
 ROOT_URLCONF = 'foudy_backend.urls'
@@ -106,7 +111,7 @@ DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': env('REDIS_URL'),
+        'LOCATION': REDIS_URL,
     }
 }
 
@@ -119,8 +124,8 @@ CHANNEL_LAYERS = {
 # ==============================================================================
 # 4. CELERY CONFIGURATION
 # ==============================================================================
-CELERY_BROKER_URL = env('REDIS_URL')
-CELERY_RESULT_BACKEND = env('REDIS_URL')
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -161,6 +166,7 @@ CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
 CORS_ALLOW_HEADERS = ["accept", "authorization", "content-type", "origin", "x-csrftoken"]
 
 if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     CSRF_COOKIE_SECURE = True
