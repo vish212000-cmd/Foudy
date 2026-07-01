@@ -13,7 +13,7 @@ export const GuestRoute = () => {
     }
 
     if (isAuthenticated) {
-        return <Navigate to="/profile" replace />;
+        return <Navigate to="/home" replace />;
     }
 
     return <Outlet />;

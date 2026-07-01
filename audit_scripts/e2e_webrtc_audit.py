@@ -91,7 +91,8 @@ async def user_journey(browser, user_id):
             pass
             
         # Fill any other text inputs (like Interests)
-        inputs = await page.locator("input[type='text']").all()
+        # ONLY inside the #profile-form so we don't accidentally trigger the Navbar Search bar Enter press!
+        inputs = await page.locator("form#profile-form input[type='text'], form#profile-setup-form input[type='text']").all()
         for i, inp in enumerate(inputs):
             try:
                 await inp.fill(f"TestTag")
@@ -99,10 +100,19 @@ async def user_journey(browser, user_id):
             except:
                 pass
                 
-        await page.click("button:has-text('Save Progress')", timeout=5000)
+        # Wait and click save
+        try:
+            await page.click("button:has-text('Save Progress')", timeout=2000)
+        except:
+            await page.click("button:has-text('Save Profile')", timeout=2000)
         await page.wait_for_timeout(1000)
         
-        await page.click("button:has-text('Continue')", timeout=5000)
+        try:
+            await page.click("button:has-text('Continue')", timeout=3000)
+            print(f"[{user_id}] Clicked Continue.")
+        except:
+            pass
+            
         print(f"[{user_id}] Profile saved/continued.")
         await page.wait_for_url("**/home**", timeout=10000)
     except Exception as e:

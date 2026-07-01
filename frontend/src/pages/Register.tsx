@@ -52,7 +52,7 @@ export default function Register() {
         display_name: data.displayName 
       })
       setCredentials(user, access_token)
-      navigate('/profile')
+      navigate('/setup')
     } catch (err: any) {
       setApiError(err.response?.data?.email?.[0] || err.response?.data?.password?.[0] || err.response?.data?.error || 'Failed to register. Please try again.')
     }

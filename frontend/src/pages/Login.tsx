@@ -83,7 +83,11 @@ export default function Login() {
     try {
       const { user, access_token } = await AuthService.login(data)
       setCredentials(user, access_token)
-      navigate('/profile')
+      if (user.profile_completed) {
+        navigate('/home')
+      } else {
+        navigate('/setup')
+      }
     } catch (err: any) {
       setApiError(err.response?.data?.error || 'Failed to sign in. Please check your credentials and try again.')
     }
