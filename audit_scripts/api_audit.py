@@ -3,7 +3,7 @@ import time
 import sys
 import uuid
 
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = "https://foudy.onrender.com"
 API_URL = f"{BASE_URL}/api/v1"
 
 def print_result(name, passed, detail=""):
@@ -13,7 +13,7 @@ def print_result(name, passed, detail=""):
 def test_health():
     try:
         r = requests.get(f"{BASE_URL}/health/")
-        passed = r.status_code == 200 and r.json().get("status") == "ok"
+        passed = r.status_code == 200 and r.json().get("status") == "healthy"
         print_result("Health Check", passed, f"Status: {r.status_code}")
         return passed
     except Exception as e:
@@ -29,7 +29,8 @@ def test_auth_flow():
     r = requests.post(f"{API_URL}/auth/register/", json={
         "email": email,
         "password": password,
-        "password_confirm": password
+        "password_confirm": password,
+        "display_name": "Test User"
     })
     
     passed_reg = r.status_code in [201, 200]
@@ -44,7 +45,7 @@ def test_auth_flow():
         "password": password
     })
     
-    passed_login = r.status_code == 200 and "access" in r.json()
+    passed_login = r.status_code == 200 and "access_token" in r.json()
     print_result("Login", passed_login, f"Status: {r.status_code}")
     
     if not passed_login:
