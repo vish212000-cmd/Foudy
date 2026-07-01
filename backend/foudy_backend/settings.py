@@ -26,6 +26,9 @@ if not _raw_redis_url or not (_raw_redis_url.startswith('redis://') or _raw_redi
     REDIS_URL = 'redis://127.0.0.1:6379/1' # Safe fallback for local/build tasks
 else:
     REDIS_URL = _raw_redis_url
+    if REDIS_URL.startswith('rediss://') and 'ssl_cert_reqs=' not in REDIS_URL:
+        joiner = '&' if '?' in REDIS_URL else '?'
+        REDIS_URL += f"{joiner}ssl_cert_reqs=none"
 WSGI_APPLICATION = 'foudy_backend.wsgi.application'
 ASGI_APPLICATION = 'foudy_backend.asgi.application'
 ROOT_URLCONF = 'foudy_backend.urls'
