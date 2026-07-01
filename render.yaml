@@ -24,13 +24,13 @@ services:
       - key: DEFAULT_FROM_EMAIL
         value: "noreply@foudy.online"
       - key: FRONTEND_URL
-        value: "https://foudy.vercel.app"
+        value: "https://www.foudy.online"
       - key: GOOGLE_OAUTH_CLIENT_ID
         sync: false
       - key: CORS_ALLOWED_ORIGINS
-        value: "https://foudy.vercel.app,https://foudy.online,https://www.foudy.online"
+        value: "https://www.foudy.online,https://foudy.online,https://foudy-alpha.vercel.app"
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://foudy.vercel.app,https://foudy.online,https://www.foudy.online,https://foudy.onrender.com"
+        value: "https://www.foudy.online,https://foudy.online,https://foudy-alpha.vercel.app,https://foudy.onrender.com"
       - key: TURN_URL
         sync: false
       - key: TURN_SECRET

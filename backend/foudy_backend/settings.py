@@ -141,7 +141,7 @@ AUTH_PASSWORD_VALIDATORS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://foudy.online",
     "https://www.foudy.online",
-    "https://foudy.vercel.app",
+    "https://foudy-alpha.vercel.app",
     "https://api.foudy.online",
     "https://foudy.onrender.com",
     "http://localhost:4173",
@@ -151,7 +151,7 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOWED_ORIGINS = [
     "https://foudy.online",
     "https://www.foudy.online",
-    "https://foudy.vercel.app",
+    "https://foudy-alpha.vercel.app",
     "https://foudy.onrender.com",
     "http://localhost:4173",
     "http://localhost:5173",
