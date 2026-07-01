@@ -22,6 +22,7 @@ class RequestLogMiddleware:
         if ip:
             # The client IP is the first IP in the comma-separated list
             ip = ip.split(',')[0].strip()
+            request.META['REMOTE_ADDR'] = ip
         else:
             ip = request.META.get('REMOTE_ADDR')
         ip_var.set(ip)

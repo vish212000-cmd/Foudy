@@ -3,7 +3,7 @@ services:
     name: foudy-backend
     env: python
     buildCommand: "cd backend && pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
-    startCommand: "cd backend && daphne -b 0.0.0.0 -p $PORT foudy_backend.asgi:application"
+    startCommand: "cd backend && daphne -b 0.0.0.0 -p $PORT --proxy-headers foudy_backend.asgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0

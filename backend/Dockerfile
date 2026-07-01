@@ -30,4 +30,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 EXPOSE 8000
 
 # Run Daphne ASGI server
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "foudy_backend.asgi:application"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "--proxy-headers", "foudy_backend.asgi:application"]
