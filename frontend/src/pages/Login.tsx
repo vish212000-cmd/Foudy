@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -101,13 +101,13 @@ export default function Login() {
           </Heading>
           <Text variant="caption" className="text-text-secondary">
             Don&apos;t have an account?{' '}
-            <a
-              href="/register"
+            <Link
+              to="/register"
               className="text-brand-primary font-medium hover:underline focus-visible:outline-none focus-visible:underline"
               aria-label="Go to sign up page"
             >
               Sign up
-            </a>
+            </Link>
           </Text>
           {apiError && (
             <div className="bg-danger-bg/10 text-danger-text text-sm font-medium p-3 rounded-md mt-2">
