@@ -4,6 +4,8 @@ export interface User {
     id: string;
     email: string | null;
     is_guest: boolean;
+    is_email_verified?: boolean;
+    profile_completed?: boolean;
     profile: {
         display_name: string;
         avatar: string | null;
@@ -67,6 +69,26 @@ export const AuthService = {
 
     async upgradeGuest(data: any): Promise<AuthResponse> {
         const response = await api.post<AuthResponse>('/auth/upgrade/', data);
+        return response.data;
+    },
+
+    async verifyEmail(data: { uid: string; token: string }): Promise<any> {
+        const response = await api.post('/auth/email-verify/confirm/', data);
+        return response.data;
+    },
+
+    async requestPasswordReset(data: { email: string }): Promise<any> {
+        const response = await api.post('/auth/password-reset/', data);
+        return response.data;
+    },
+
+    async resetPassword(data: any): Promise<any> {
+        const response = await api.post('/auth/password-reset/confirm/', data);
+        return response.data;
+    },
+
+    async googleLogin(data: { access_token: string }): Promise<AuthResponse> {
+        const response = await api.post<AuthResponse>('/auth/google-login/', data);
         return response.data;
     }
 };

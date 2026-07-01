@@ -14,6 +14,7 @@ import { Heading } from '../components/ui/Heading'
 import { Text } from '../components/ui/Text'
 import { AuthService } from '../services/auth'
 import { useAuthStore } from '../store/auth'
+import { useGoogleLogin } from '@react-oauth/google'
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
@@ -65,6 +66,29 @@ export default function Login() {
   const { setCredentials } = useAuthStore()
   const [rememberMe, setRememberMe] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsGoogleLoading(true)
+      setApiError(null)
+      try {
+        const { user, access_token } = await AuthService.googleLogin({ access_token: tokenResponse.access_token })
+        setCredentials(user, access_token)
+        if (user.profile_completed) {
+          navigate('/home')
+        } else {
+          navigate('/setup')
+        }
+      } catch (err: any) {
+        setApiError(err.response?.data?.error || 'Google login failed. Please try again.')
+        setIsGoogleLoading(false)
+      }
+    },
+    onError: () => {
+      setApiError('Google login was unsuccessful.')
+    }
+  })
 
   const {
     register,
@@ -170,13 +194,13 @@ export default function Login() {
                   </Text>
                 </label>
 
-                <a
-                  href="/forgot-password"
+                <Link
+                  to="/forgot-password"
                   className="text-sm font-medium text-brand-primary hover:underline focus-visible:outline-none focus-visible:underline shrink-0"
                   aria-label="Forgot your password? Reset it here"
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               <Button
@@ -211,8 +235,10 @@ export default function Login() {
               type="button"
               className="w-full gap-2.5"
               aria-label="Continue with Google"
+              onClick={() => handleGoogleLogin()}
+              disabled={isSubmitting || isGoogleLoading}
             >
-              <GoogleIcon />
+              {isGoogleLoading ? <Loader2 className="animate-spin h-5 w-5" /> : <GoogleIcon />}
               <span>Google</span>
             </Button>
 
@@ -231,19 +257,19 @@ export default function Login() {
 
         <Text variant="caption" className="text-center text-text-tertiary">
           By signing in you agree to our{' '}
-          <a
-            href="/terms"
+          <Link
+            to="/terms"
             className="text-text-secondary hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:underline"
           >
             Terms of Service
-          </a>{' '}
+          </Link>{' '}
           and{' '}
-          <a
-            href="/privacy"
+          <Link
+            to="/privacy"
             className="text-text-secondary hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:underline"
           >
             Privacy Policy
-          </a>
+          </Link>
           .
         </Text>
       </div>

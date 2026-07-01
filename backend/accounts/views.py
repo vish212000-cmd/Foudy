@@ -15,6 +15,7 @@ import redis
 import logging
 from django.conf import settings
 from core.redis import RedisNamespaces, RedisTTL
+import requests
 
 redis_client = redis.from_url(settings.REDIS_URL)
 logger = logging.getLogger('foudy.auth')
@@ -27,7 +28,8 @@ from django.core.mail import send_mail
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserSerializer, GuestUpgradeSerializer,
     PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
-    EmailVerificationRequestSerializer, EmailVerificationConfirmSerializer
+    EmailVerificationRequestSerializer, EmailVerificationConfirmSerializer,
+    GoogleLoginSerializer
 )
 from .models import User, UserSession
 from profiles.models import Profile
@@ -85,6 +87,23 @@ class RegisterView(APIView):
         Profile.objects.create(
             user=user,
             display_name=serializer.validated_data['display_name']
+        )
+        
+        # Send verification email
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = secrets.token_urlsafe(32)
+        redis_client.setex(
+            RedisNamespaces.auth_verify_token(token),
+            RedisTTL.AUTH_VERIFY_TOKEN,
+            user.id
+        )
+        verify_link = f"{settings.FRONTEND_URL}/verify-email?uid={uid}&token={token}"
+        send_mail(
+            subject='Verify your email for FOUDY',
+            message=f'Welcome to FOUDY! Use this link to verify your email: {verify_link}',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=True,
         )
         
         tokens = create_tokens_for_user(user, request)
@@ -267,14 +286,13 @@ class PasswordResetRequestView(APIView):
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = secrets.token_urlsafe(32)
             
-            # Store secure one-time token in Redis
             redis_client.setex(
                 RedisNamespaces.auth_reset_token(token),
                 RedisTTL.AUTH_RESET_TOKEN,
                 user.id
             )
             
-            reset_link = f"http://localhost:3000/reset-password?uid={uid}&token={token}"
+            reset_link = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
             
             send_mail(
                 subject='Password Reset',
@@ -343,7 +361,7 @@ class EmailVerificationRequestView(APIView):
             user.id
         )
         
-        verify_link = f"http://localhost:3000/verify-email?uid={uid}&token={token}"
+        verify_link = f"{settings.FRONTEND_URL}/verify-email?uid={uid}&token={token}"
         
         send_mail(
             subject='Verify your email',
@@ -392,3 +410,83 @@ class SessionRevokeView(APIView):
         if session_id:
             UserSession.objects.filter(id=session_id, user=request.user).update(is_revoked=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class GoogleOAuthView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'login'
+
+    @extend_schema(request=GoogleLoginSerializer, responses={200: UserSerializer, 201: UserSerializer})
+    def post(self, request):
+        serializer = GoogleLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        token = serializer.validated_data['access_token']
+        try:
+            # Verify the token by fetching user info
+            user_info_response = requests.get(
+                'https://www.googleapis.com/oauth2/v3/userinfo',
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if user_info_response.status_code != 200:
+                raise ValueError('Invalid Google access token.')
+                
+            idinfo = user_info_response.json()
+
+            # Extract user info
+            email = idinfo['email']
+            display_name = idinfo.get('name', email.split('@')[0])
+            email_verified = idinfo.get('email_verified', False)
+
+            # Get or create user
+            user = User.objects.filter(email=email).first()
+            created = False
+            
+            if not user:
+                # Create a new user (with unusable password)
+                user = User.objects.create_user(
+                    email=email,
+                    password=None,
+                    is_guest=False
+                )
+                user.is_email_verified = email_verified
+                user.set_unusable_password()
+                user.save()
+                
+                Profile.objects.create(
+                    user=user,
+                    display_name=display_name,
+                    avatar=idinfo.get('picture', None)
+                )
+                created = True
+            elif not user.is_email_verified and email_verified:
+                user.is_email_verified = True
+                user.save()
+
+            # Create tokens
+            tokens = create_tokens_for_user(user, request)
+            response_data = {
+                'access_token': tokens['access'],
+                'user': UserSerializer(user).data
+            }
+            
+            logger.info("Successful Google login", extra={
+                "event": "google_login_success",
+                "user_id": user.id,
+                "ip": get_client_ip(request)
+            })
+            
+            status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+            response = Response(response_data, status=status_code)
+            set_refresh_cookie(response, tokens['refresh'])
+            return response
+
+        except ValueError as e:
+            logger.warning("Google login failed", extra={
+                "event": "google_login_failed",
+                "error": str(e),
+                "ip": get_client_ip(request)
+            })
+            return Response({"error": "Invalid Google token"}, status=status.HTTP_401_UNAUTHORIZED)
+

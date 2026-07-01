@@ -112,10 +112,7 @@ CACHES = {
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [env('REDIS_URL')],
-        },
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
 
@@ -145,6 +142,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://foudy.online",
     "https://www.foudy.online",
     "http://localhost:4173",
+    "http://localhost:5173",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
@@ -218,6 +216,9 @@ ANYMAIL = {
     "RESEND_API_KEY": env('RESEND_API_KEY', default='')
 }
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='onboarding@resend.dev')
+FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
+
+GOOGLE_OAUTH_CLIENT_ID = env('GOOGLE_OAUTH_CLIENT_ID', default='')
 
 # ==============================================================================
 # 7. OBSERVABILITY & LOGGING

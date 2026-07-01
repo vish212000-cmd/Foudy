@@ -14,37 +14,25 @@ async def handle_proxy(route):
         return
 
     if req_url.startswith(URL):
-        local_url = req_url.replace(URL, "http://localhost:4173")
-        import urllib.request
-        try:
-            req = urllib.request.Request(local_url)
-            with urllib.request.urlopen(req) as response:
-                content = response.read()
-                headers = dict(response.getheaders())
-                await route.fulfill(status=response.status, headers=headers, body=content)
-            return
-        except Exception as e:
-            # SPA fallback
-            try:
-                req = urllib.request.Request("http://localhost:4173/")
-                with urllib.request.urlopen(req) as response:
-                    content = response.read()
-                    headers = dict(response.getheaders())
-                    await route.fulfill(status=200, headers=headers, body=content)
-                return
-            except Exception:
-                pass
-                
+        # We are testing production directly, no proxy
+        await route.continue_()
+        return
+        
     await route.continue_()
 
 async def user_journey(browser, user_id):
     print(f"[{user_id}] Starting session...")
     context = await browser.new_context(
+        record_video_dir=f"videos/{user_id}",
         permissions=['camera', 'microphone']
     )
     # Intercept all requests to proxy frontend and let backend pass
     await context.route("**/*", handle_proxy)
     page = await context.new_page()
+    
+    # Log console messages
+    page.on("console", lambda msg: print(f"[{user_id} CONSOLE] {msg.type}: {msg.text}"))
+    page.on("pageerror", lambda err: print(f"[{user_id} PAGE ERROR] {err}"))
     
     page.on("response", lambda response: print(f"[{user_id}] Response {response.status} from {response.url}") if not response.ok else None)
     
@@ -85,33 +73,19 @@ async def user_journey(browser, user_id):
     # 2. Profile Complete
     try:
         # Fill Display Name just in case it's empty
-        display_name_input = page.locator("input").nth(1)
-        try:
-            await display_name_input.fill("Tester")
-        except:
-            pass
-            
-        # Fill any other text inputs (like Interests)
-        # ONLY inside the #profile-form so we don't accidentally trigger the Navbar Search bar Enter press!
-        inputs = await page.locator("form#profile-form input[type='text'], form#profile-setup-form input[type='text']").all()
-        for i, inp in enumerate(inputs):
-            try:
-                await inp.fill(f"TestTag")
-                await inp.press("Enter")
-            except:
-                pass
-                
+        print(f"[{user_id}] Filling profile setup...")
+        await page.fill("#setup_display_name", "Tester")
+        
         # Wait and click save
-        try:
-            await page.click("button:has-text('Save Progress')", timeout=2000)
-        except:
-            await page.click("button:has-text('Save Profile')", timeout=2000)
+        print(f"[{user_id}] Clicking Save Progress...")
+        await page.click("button:has-text('Save Progress')", timeout=2000)
         await page.wait_for_timeout(1000)
         
         try:
-            await page.click("button:has-text('Continue')", timeout=3000)
-            print(f"[{user_id}] Clicked Continue.")
-        except:
+            print(f"[{user_id}] Clicking Continue...")
+            await page.click("button:has-text('Continue to FOUDY')", timeout=3000)
+        except Exception as e:
+            print(f"[{user_id}] Could not click Continue: {e}")
             pass
             
         print(f"[{user_id}] Profile saved/continued.")
@@ -119,6 +93,7 @@ async def user_journey(browser, user_id):
     except Exception as e:
         form_html = await page.locator("body").inner_html()
         print(f"[{user_id}] Could not auto-save profile. Exception: {e}")
+        await page.screenshot(path=f"{user_id}_profile_error.png")
         with open(f"{user_id}_html_dump.txt", "w", encoding="utf-8") as f:
             f.write(form_html)
         print(f"[{user_id}] Dumped HTML to {user_id}_html_dump.txt")

@@ -60,3 +60,6 @@ class EmailVerificationRequestSerializer(serializers.Serializer):
 class EmailVerificationConfirmSerializer(serializers.Serializer):
     uid = serializers.CharField()
     token = serializers.CharField()
+
+class GoogleLoginSerializer(serializers.Serializer):
+    access_token = serializers.CharField()

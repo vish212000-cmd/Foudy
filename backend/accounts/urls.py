@@ -3,7 +3,8 @@ from .views import (
     RegisterView, LoginView, GuestLoginView, LogoutView, RefreshView, 
     SessionRevokeView, GuestUpgradeView, PasswordResetRequestView, 
     PasswordResetConfirmView, EmailVerificationRequestView, 
-    EmailVerificationConfirmView, LogoutAllDevicesView
+    EmailVerificationConfirmView, LogoutAllDevicesView,
+    GoogleOAuthView
 )
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('email-verify/', EmailVerificationRequestView.as_view(), name='email_verify_request'),
     path('email-verify/confirm/', EmailVerificationConfirmView.as_view(), name='email_verify_confirm'),
+    path('google-login/', GoogleOAuthView.as_view(), name='google_login'),
 ]
