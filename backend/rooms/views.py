@@ -10,7 +10,7 @@ class RoomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 100
 
-class RoomViewSet(viewsets.ReadOnlyModelViewSet):
+class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.prefetch_related('participants__user__profile')
     serializer_class = RoomSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -32,3 +32,24 @@ class RoomViewSet(viewsets.ReadOnlyModelViewSet):
         participants = RoomParticipant.objects.filter(room=room).select_related('user', 'user__profile')
         serializer = RoomParticipantSerializer(participants, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def invite(self, request, pk=None):
+        return Response({"code": "MOCK_CODE", "expires_at": None})
+
+    @action(detail=False, methods=['get'], url_path=r'invite/(?P<code>[^/.]+)')
+    def resolve_invite(self, request, code=None):
+        # Mock resolving invite
+        return Response({"room_id": "MOCK_ROOM_ID"})
+
+    @action(detail=True, methods=['delete'], url_path=r'participants/(?P<user_id>[^/.]+)')
+    def remove_participant(self, request, pk=None, user_id=None):
+        return Response({"status": "success"})
+
+    @action(detail=True, methods=['post'])
+    def lock(self, request, pk=None):
+        return Response({"status": "success"})
+
+    @action(detail=True, methods=['post'])
+    def host(self, request, pk=None):
+        return Response({"status": "success"})

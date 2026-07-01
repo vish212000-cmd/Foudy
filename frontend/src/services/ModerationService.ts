@@ -3,19 +3,19 @@ import type { BlockedUser, ReportPayload } from '../types/moderation';
 
 export const ModerationService = {
     async blockUser(userId: number): Promise<void> {
-        await api.post(`/api/moderation/block/${userId}/`);
+        await api.post(`/moderation/block/${userId}/`);
     },
 
     async unblockUser(userId: number): Promise<void> {
-        await api.post(`/api/moderation/unblock/${userId}/`);
+        await api.post(`/moderation/unblock/${userId}/`);
     },
 
     async reportUser(userId: number, payload: ReportPayload): Promise<void> {
-        await api.post(`/api/moderation/report/${userId}/`, payload);
+        await api.post(`/moderation/report/${userId}/`, payload);
     },
 
     async getBlockedUsers(): Promise<BlockedUser[]> {
-        const response = await api.get<BlockedUser[]>('/api/moderation/blocks/');
+        const response = await api.get<BlockedUser[]>('/moderation/blocks/');
         return response.data;
     }
 };

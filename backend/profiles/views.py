@@ -86,3 +86,14 @@ class AvatarUploadView(APIView):
             return Response(serializer.data)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class StatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses={200: dict})
+    def get(self, request):
+        return Response({
+            "rooms_joined": 0,
+            "messages_sent": 0,
+            "total_match_time": 0
+        })
