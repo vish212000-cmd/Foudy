@@ -138,12 +138,24 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://foudy.online",
+    "https://www.foudy.online",
+    "https://foudy.vercel.app",
+    "https://api.foudy.online",
+    "https://foudy.onrender.com",
+    "http://localhost:4173",
+    "http://localhost:5173",
+] + env.list('CSRF_TRUSTED_ORIGINS', default=[])
+
 CORS_ALLOWED_ORIGINS = [
     "https://foudy.online",
     "https://www.foudy.online",
+    "https://foudy.vercel.app",
+    "https://foudy.onrender.com",
     "http://localhost:4173",
     "http://localhost:5173",
-]
+] + env.list('CORS_ALLOWED_ORIGINS', default=[])
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
 CORS_ALLOW_HEADERS = ["accept", "authorization", "content-type", "origin", "x-csrftoken"]
