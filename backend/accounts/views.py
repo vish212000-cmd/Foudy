@@ -66,7 +66,7 @@ def set_refresh_cookie(response, refresh_token):
         max_age=7 * 24 * 60 * 60,
         httponly=True,
         secure=True,
-        samesite='Strict'
+        samesite='None'
     )
 
 class RegisterView(APIView):

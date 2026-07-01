@@ -14,12 +14,12 @@ api.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         // Idempotency Key for POST/PUT/PATCH
         if (['post', 'put', 'patch', 'delete'].includes(config.method || '')) {
-            config.headers['Idempotency-Key'] = uuidv4();
+            config.headers.set('Idempotency-Key', uuidv4());
         }
         
         const token = localStorage.getItem('token');
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+            config.headers.set('Authorization', `Bearer ${token}`);
         }
         return config;
     },

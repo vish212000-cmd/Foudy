@@ -28,9 +28,9 @@ const processQueue = (error: any, token: string | null = null) => {
 
 api.interceptors.request.use(
     (config) => {
-        const token = useAuthStore.getState().accessToken;
+        const token = localStorage.getItem('token');
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+            config.headers.set('Authorization', `Bearer ${token}`);
         }
         return config;
     },

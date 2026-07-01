@@ -6,20 +6,35 @@ import sys
 
 URL = "https://www.foudy.online"
 
-async def handle_spa_routing(route):
+async def handle_proxy(route):
     req_url = route.request.url
-    # If it's a navigation to a subpath of our app (not an asset)
-    if req_url.startswith(URL) and req_url != URL + "/" and req_url != URL:
-        if not req_url.endswith(".js") and not req_url.endswith(".css") and not req_url.endswith(".svg"):
-            # Fetch root page
-            import urllib.request
+    
+    if req_url.startswith("https://foudy.onrender.com") or req_url.startswith("wss://"):
+        await route.continue_()
+        return
+
+    if req_url.startswith(URL):
+        local_url = req_url.replace(URL, "http://localhost:4173")
+        import urllib.request
+        try:
+            req = urllib.request.Request(local_url)
+            with urllib.request.urlopen(req) as response:
+                content = response.read()
+                headers = dict(response.getheaders())
+                await route.fulfill(status=response.status, headers=headers, body=content)
+            return
+        except Exception as e:
+            # SPA fallback
             try:
-                req = urllib.request.Request(URL + "/", headers={'User-Agent': 'Mozilla/5.0'})
-                html = urllib.request.urlopen(req).read()
-                await route.fulfill(status=200, content_type="text/html", body=html)
+                req = urllib.request.Request("http://localhost:4173/")
+                with urllib.request.urlopen(req) as response:
+                    content = response.read()
+                    headers = dict(response.getheaders())
+                    await route.fulfill(status=200, headers=headers, body=content)
                 return
-            except Exception as e:
+            except Exception:
                 pass
+                
     await route.continue_()
 
 async def user_journey(browser, user_id):
@@ -27,8 +42,11 @@ async def user_journey(browser, user_id):
     context = await browser.new_context(
         permissions=['camera', 'microphone']
     )
-    await context.route("**/*", handle_spa_routing)
+    # Intercept all requests to proxy frontend and let backend pass
+    await context.route("**/*", handle_proxy)
     page = await context.new_page()
+    
+    page.on("response", lambda response: print(f"[{user_id}] Response {response.status} from {response.url}") if not response.ok else None)
     
     # 1. Registration
     print(f"[{user_id}] Navigating to {URL}/register...")
@@ -54,7 +72,8 @@ async def user_journey(browser, user_id):
     
     try:
         await page.wait_for_url("**/profile**", timeout=15000)
-        print(f"[{user_id}] Registration successful, at profile page.")
+        token = await page.evaluate("localStorage.getItem('token')")
+        print(f"[{user_id}] Registration successful, at profile page. Token: {token[:20] if token else 'NONE'}")
     except Exception as e:
         print(f"[{user_id}] Registration failed: {e}")
         # Capture error text if any
@@ -64,9 +83,22 @@ async def user_journey(browser, user_id):
         
     # 2. Profile Complete
     try:
-        # Add an interest to reach 40% completion (display_name 15 + interests 25 = 40)
-        await page.fill("input[placeholder*='Tech']", "Testing")
-        await page.press("input[placeholder*='Tech']", "Enter")
+        # Fill Display Name just in case it's empty
+        display_name_input = page.locator("input").nth(1)
+        try:
+            await display_name_input.fill("Tester")
+        except:
+            pass
+            
+        # Fill any other text inputs (like Interests)
+        inputs = await page.locator("input[type='text']").all()
+        for i, inp in enumerate(inputs):
+            try:
+                await inp.fill(f"TestTag")
+                await inp.press("Enter")
+            except:
+                pass
+                
         await page.click("button:has-text('Save Progress')", timeout=5000)
         await page.wait_for_timeout(1000)
         
@@ -74,8 +106,10 @@ async def user_journey(browser, user_id):
         print(f"[{user_id}] Profile saved/continued.")
         await page.wait_for_url("**/home**", timeout=10000)
     except Exception as e:
-        form_html = await page.locator("form").inner_html()
-        print(f"[{user_id}] Could not auto-save profile. Form HTML: {form_html[:2000]}")
+        form_html = await page.locator("body").inner_html()
+        print(f"[{user_id}] Could not auto-save profile. Form HTML len: {len(form_html)}")
+        with open(f"{user_id}_profile_html.txt", "w", encoding="utf-8") as f:
+            f.write(form_html)
         
     # 3. Matchmaking
     try:

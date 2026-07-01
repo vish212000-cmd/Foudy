@@ -23,27 +23,47 @@ export const useAuthStore = create<AuthState>((set) => ({
     isLoading: true, // Start as true while we check auth
     error: null,
 
-    setCredentials: (user, accessToken) => set({ 
-        user, 
-        accessToken, 
-        isAuthenticated: true,
-        isLoading: false,
-        error: null
-    }),
+    setCredentials: (user, accessToken) => {
+        localStorage.setItem('token', accessToken);
+        set({ 
+            user, 
+            accessToken, 
+            isAuthenticated: true,
+            isLoading: false,
+            error: null
+        });
+    },
     
-    setAccessToken: (accessToken) => set({ accessToken }),
+    setAccessToken: (accessToken) => {
+        localStorage.setItem('token', accessToken);
+        set({ accessToken });
+    },
     
     updateUser: (user) => set({ user }),
 
-    logout: () => set({ 
-        user: null, 
-        accessToken: null, 
-        isAuthenticated: false,
-        isLoading: false
-    }),
+    logout: () => {
+        localStorage.removeItem('token');
+        set({ 
+            user: null, 
+            accessToken: null, 
+            isAuthenticated: false,
+            isLoading: false
+        });
+    },
 
     checkAuth: async () => {
         try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                set({ 
+                    isLoading: false, 
+                    isAuthenticated: false,
+                    user: null,
+                    accessToken: null
+                });
+                return;
+            }
+
             set({ isLoading: true, error: null });
             
             // First we attempt to hit the /me endpoint
