@@ -29,7 +29,7 @@ else:
     joiner = '&' if '?' in REDIS_URL else '?'
     # Always append timeouts and keepalives to prevent hanging on Upstash serverless Redis
     if 'socket_connect_timeout=' not in REDIS_URL:
-        REDIS_URL += f"{joiner}socket_connect_timeout=5&socket_timeout=5&health_check_interval=20&socket_keepalive=1"
+        REDIS_URL += f"{joiner}socket_connect_timeout=5&socket_timeout=5&health_check_interval=1&socket_keepalive=1&retry_on_timeout=true"
         joiner = '&'
     
     if REDIS_URL.startswith('rediss://') and 'ssl_cert_reqs=' not in REDIS_URL:
