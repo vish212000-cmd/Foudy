@@ -87,3 +87,18 @@ jobs:
     - name: Build Validation
       working-directory: ./frontend
       run: npm run build
+
+  deploy-to-render:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: [backend-lint-and-test, frontend-lint-and-build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+    - name: Trigger Render deploy
+      run: |
+        curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
+          -H "Content-Type: application/json" \
+          --fail \
+          --retry 3
+      env:
+        RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
