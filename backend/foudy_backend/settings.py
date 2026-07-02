@@ -116,13 +116,11 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': REDIS_URL,
         'OPTIONS': {
-            'connection_class_kwargs': {
-                'socket_connect_timeout': 5,
-                'socket_timeout': 5,
-                'health_check_interval': 1,
-                'socket_keepalive': True,
-                'retry_on_timeout': True
-            }
+            'socket_connect_timeout': 5,
+            'socket_timeout': 5,
+            'health_check_interval': 1,
+            'socket_keepalive': True,
+            'retry_on_timeout': True
         }
     }
 }
