@@ -90,7 +90,7 @@ export function Settings() {
                       {user.is_guest ? "You are using a temporary guest account." : user.email}
                     </p>
                   </div>
-                  {!user.is_guest && <Button variant="secondary" size="sm">Edit</Button>}
+                  {!user.is_guest && <Button variant="secondary" size="sm" onClick={() => navigate('/profile')}>Edit</Button>}
                 </div>
 
                 {user.is_guest && (
@@ -242,7 +242,7 @@ export function Settings() {
                       Permanently remove your account, profile, and all chat history. This cannot be undone.
                     </p>
                   </div>
-                  <Button variant="destructive" className="shrink-0">
+                  <Button variant="destructive" className="shrink-0" onClick={() => alert('Account deletion is not yet implemented.')}>
                     Delete Account
                   </Button>
                 </div>

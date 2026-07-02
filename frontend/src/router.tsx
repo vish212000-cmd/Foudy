@@ -93,6 +93,10 @@ export const router = createBrowserRouter([
             lazy: async () => ({ Component: (await import('./pages/BlockedUsers')).BlockedUsers }) 
           },
           { 
+            path: '/notifications', 
+            lazy: async () => ({ Component: (await import('./pages/Notifications')).Notifications }) 
+          },
+          { 
             path: '/rooms/create', 
             lazy: async () => ({ Component: (await import('./pages/CreateRoom')).default }) 
           },

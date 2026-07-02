@@ -138,7 +138,7 @@ export default function MatchFound() {
                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/10 text-white" onClick={() => navigate('/chat')}>
                    <MessageSquare className="w-5 h-5" />
                  </Button>
-                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/10 text-white hidden sm:flex">
+                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/10 text-white hidden sm:flex" onClick={() => navigate('/settings')}>
                    <Settings className="w-5 h-5" />
                  </Button>
                </div>
