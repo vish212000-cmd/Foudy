@@ -2,6 +2,9 @@ import os
 import environ
 from pathlib import Path
 from datetime import timedelta
+import redis
+from redis.retry import Retry
+from redis.backoff import ExponentialBackoff
 
 # ==============================================================================
 # 1. BASE CONFIGURATION
@@ -120,7 +123,8 @@ CACHES = {
             'socket_timeout': 5,
             'health_check_interval': 1,
             'socket_keepalive': True,
-            'retry_on_timeout': True
+            'retry': Retry(ExponentialBackoff(cap=10, base=1), 3),
+            'retry_on_error': [redis.exceptions.ConnectionError, TimeoutError, ConnectionResetError],
         }
     }
 }
@@ -141,7 +145,8 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
     'socket_connect_timeout': 5,
     'health_check_interval': 1,
     'socket_keepalive': True,
-    'retry_on_timeout': True
+    'retry': Retry(ExponentialBackoff(cap=10, base=1), 3),
+    'retry_on_error': [redis.exceptions.ConnectionError, TimeoutError, ConnectionResetError],
 }
 CELERY_REDIS_BACKEND_TRANSPORT_OPTIONS = CELERY_BROKER_TRANSPORT_OPTIONS
 CELERY_ACCEPT_CONTENT = ['application/json']
