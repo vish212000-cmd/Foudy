@@ -26,13 +26,8 @@ if not _raw_redis_url or not (_raw_redis_url.startswith('redis://') or _raw_redi
     REDIS_URL = 'redis://127.0.0.1:6379/1' # Safe fallback for local/build tasks
 else:
     REDIS_URL = _raw_redis_url
-    joiner = '&' if '?' in REDIS_URL else '?'
-    # Always append timeouts and keepalives to prevent hanging on Upstash serverless Redis
-    if 'socket_connect_timeout=' not in REDIS_URL:
-        REDIS_URL += f"{joiner}socket_connect_timeout=5&socket_timeout=5&health_check_interval=1&socket_keepalive=1&retry_on_timeout=true"
-        joiner = '&'
-    
     if REDIS_URL.startswith('rediss://') and 'ssl_cert_reqs=' not in REDIS_URL:
+        joiner = '&' if '?' in REDIS_URL else '?'
         REDIS_URL += f"{joiner}ssl_cert_reqs=none"
 WSGI_APPLICATION = 'foudy_backend.wsgi.application'
 ASGI_APPLICATION = 'foudy_backend.asgi.application'
@@ -120,6 +115,15 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'connection_class_kwargs': {
+                'socket_connect_timeout': 5,
+                'socket_timeout': 5,
+                'health_check_interval': 1,
+                'socket_keepalive': True,
+                'retry_on_timeout': True
+            }
+        }
     }
 }
 
@@ -134,6 +138,14 @@ CHANNEL_LAYERS = {
 # ==============================================================================
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'socket_timeout': 5,
+    'socket_connect_timeout': 5,
+    'health_check_interval': 1,
+    'socket_keepalive': True,
+    'retry_on_timeout': True
+}
+CELERY_REDIS_BACKEND_TRANSPORT_OPTIONS = CELERY_BROKER_TRANSPORT_OPTIONS
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
