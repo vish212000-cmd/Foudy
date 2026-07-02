@@ -92,6 +92,18 @@ export const router = createBrowserRouter([
             path: '/blocked', 
             lazy: async () => ({ Component: (await import('./pages/BlockedUsers')).BlockedUsers }) 
           },
+          { 
+            path: '/rooms/create', 
+            lazy: async () => ({ Component: (await import('./pages/CreateRoom')).default }) 
+          },
+          { 
+            path: '/join', 
+            lazy: async () => ({ Component: (await import('./pages/JoinRoom')).default }) 
+          },
+          { 
+            path: '/rooms/:id', 
+            lazy: async () => ({ Component: (await import('./pages/Chat')).Chat }) // Placeholder
+          },
           // Redirect unknown routes to profile for now to avoid broken nav
           { path: '*', element: <Navigate to="/profile" replace /> }
         ],

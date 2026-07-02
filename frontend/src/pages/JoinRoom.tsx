@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Heading } from "../components/ui/Heading"
 import { Text } from "../components/ui/Text"
 import { SearchInput } from "../components/ui/SearchInput"
@@ -61,6 +62,7 @@ export default function JoinRoom() {
   const [search, setSearch]       = useState("")
   const [activeTab, setActiveTab] = useState<TabValue>("all")
   const [currentPage, setPage]    = useState(1)
+  const navigate                  = useNavigate()
 
   const filtered = ALL_ROOMS.filter((room) => {
     const matchesTab =
@@ -124,7 +126,7 @@ export default function JoinRoom() {
                     maxParticipants={room.maxParticipants}
                     isPrivate={room.isPrivate}
                     topics={[...room.topics]}
-                    onJoin={() => {}}
+                    onJoin={() => navigate(`/rooms/${room.id}`)}
                   />
                 ))}
               </div>

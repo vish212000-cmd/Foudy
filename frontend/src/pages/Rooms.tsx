@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, Plus, Hash, Search, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
@@ -10,6 +11,7 @@ export function Rooms() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'public' | 'private'>('public');
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchRooms() {
@@ -35,7 +37,11 @@ export function Rooms() {
           <h1 className="text-3xl font-bold text-text-primary tracking-tight">Rooms</h1>
           <p className="text-text-secondary mt-1">Join public conversations or create your own private space.</p>
         </div>
-        <Button variant="primary" className="shrink-0 rounded-full gap-2 shadow-lg shadow-brand-primary/20">
+        <Button 
+          variant="primary" 
+          className="shrink-0 rounded-full gap-2 shadow-lg shadow-brand-primary/20"
+          onClick={() => navigate('/rooms/create')}
+        >
           <Plus className="w-5 h-5" />
           Create Room
         </Button>
@@ -90,6 +96,7 @@ export function Rooms() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
                 className="group bg-surface hover:bg-surface-hover border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.15)] rounded-2xl p-5 cursor-pointer transition-all"
+                onClick={() => navigate(`/rooms/${room.id}`)}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="px-2 py-1 bg-[rgba(255,255,255,0.05)] rounded text-xs font-medium text-text-secondary flex items-center gap-1">

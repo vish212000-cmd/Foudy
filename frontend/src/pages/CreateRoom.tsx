@@ -87,7 +87,7 @@ export default function CreateRoom() {
         audioEnabled: data.audioEnabled
       });
       // Redirect to newly created room
-      navigate(`/room/${room.id}`);
+      navigate(`/rooms/${room.id}`);
     } catch (error: any) {
       setApiError(error.response?.data?.error || "Failed to create room.");
     }

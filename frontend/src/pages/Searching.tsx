@@ -20,7 +20,7 @@ export default function Searching() {
     if (lastEvent.event === 'matched') {
         navigate('/match-found', { state: { matchId: lastEvent.payload.matched_with } });
     } else if (lastEvent.event === 'queue_status' && lastEvent.payload.status === 'IDLE') {
-        navigate('/random-match');
+        navigate('/match');
     }
   }, [lastEvent, navigate]);
 
