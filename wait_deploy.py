@@ -2,7 +2,7 @@ import requests
 import time
 import sys
 
-TARGET_COMMIT = "a6aeef89"
+TARGET_COMMIT = sys.argv[1] if len(sys.argv) > 1 else "a6aeef89"
 MAX_RETRIES = 60
 
 print(f"Waiting for commit {TARGET_COMMIT} to be deployed...")

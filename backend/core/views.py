@@ -57,37 +57,6 @@ def health_version(request):
         "render_instance_id": os.environ.get('RENDER_INSTANCE_ID', 'unknown')
     })
 
-def verify_state(request):
-    # Only for certification purposes
-    user_id = request.GET.get('user_id')
-    if not user_id:
-        return JsonResponse({"error": "user_id required"}, status=400)
-        
-    try:
-        from matching.repository import MatchmakingRepository
-        from rooms.models import Room, RoomParticipant
-        import json
-        
-        repo = MatchmakingRepository()
-        status = repo.get_user_status(user_id)
-        
-        # Find room for user
-        participant = RoomParticipant.objects.filter(user_id=user_id, is_active=True).first()
-        room_data = None
-        if participant:
-            room = participant.room
-            room_data = {
-                "id": str(room.id),
-                "status": room.status,
-                "participants": list(room.participants.values_list('user_id', flat=True))
-            }
-            
-        return JsonResponse({
-            "redis_status": status,
-            "database_room": room_data
-        })
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
 
 def health_system(request):
     return JsonResponse({
