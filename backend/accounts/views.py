@@ -168,7 +168,8 @@ class GuestLoginView(APIView):
 
     @extend_schema(responses={201: UserSerializer})
     def post(self, request):
-        user = User.objects.create(is_guest=True)
+        guest_email = f"guest_{uuid.uuid4().hex[:12]}@foudy.local"
+        user = User.objects.create(is_guest=True, email=guest_email)
         Profile.objects.create(
             user=user,
             display_name=f"Guest{random.randint(1000, 9999)}"
