@@ -49,7 +49,7 @@ def health_version(request):
     return JsonResponse({
         "status": "healthy",
         "version": os.environ.get('APP_VERSION', '1.0.0'),
-        "git_commit": os.environ.get('GIT_COMMIT', 'unknown'),
+        "git_commit": os.environ.get('RENDER_GIT_COMMIT', os.environ.get('GIT_COMMIT', 'unknown')),
         "build_date": os.environ.get('BUILD_DATE', 'unknown'),
         "environment": os.environ.get('ENV', 'development')
     })
