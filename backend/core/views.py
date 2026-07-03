@@ -46,12 +46,15 @@ def health_email(request):
     return JsonResponse({"status": "unhealthy", "error": "RESEND_API_KEY missing"}, status=503)
 
 def health_version(request):
+    is_render = os.environ.get('RENDER', '').lower() == 'true'
     return JsonResponse({
         "status": "healthy",
         "version": os.environ.get('APP_VERSION', '1.0.0'),
         "git_commit": os.environ.get('RENDER_GIT_COMMIT', os.environ.get('GIT_COMMIT', 'unknown')),
         "build_date": os.environ.get('BUILD_DATE', 'unknown'),
-        "environment": os.environ.get('ENV', 'development')
+        "environment": "production" if is_render else os.environ.get('ENV', 'development'),
+        "render_service_id": os.environ.get('RENDER_SERVICE_ID', 'unknown'),
+        "render_instance_id": os.environ.get('RENDER_INSTANCE_ID', 'unknown')
     })
 
 def health_system(request):

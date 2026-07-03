@@ -6,12 +6,12 @@ type ToasterProps = React.ComponentProps<typeof Sonner>
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
-      className="toaster group"
+      className="toaster group pointer-events-none"
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-surface group-[.toaster]:text-text-primary group-[.toaster]:border-border-default group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-text-secondary",
+            "group toast group-[.toaster]:bg-surface group-[.toaster]:text-text-primary group-[.toaster]:border-border-default group-[.toaster]:shadow-lg pointer-events-none",
+          description: "group-[.toast]:text-text-secondary pointer-events-none",
           actionButton:
             "group-[.toast]:bg-brand-primary group-[.toast]:text-text-inverse",
           cancelButton:

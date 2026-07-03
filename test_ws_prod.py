@@ -3,8 +3,8 @@ import websockets
 import requests
 import json
 
-API_URL = "http://127.0.0.1:8000"
-WS_URL = "ws://127.0.0.1:8000/ws"
+API_URL = "https://foudy.onrender.com"
+WS_URL = "wss://foudy.onrender.com/ws/"
 
 def get_token():
     res = requests.post(f"{API_URL}/api/v1/auth/guest/")
