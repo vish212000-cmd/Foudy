@@ -26,7 +26,16 @@ def get_redis_client(decode_responses=True):
         return None
         
     try:
-        client = redis.Redis.from_url(redis_url, decode_responses=decode_responses)
+        options = {}
+        # Fetch options from Django cache settings if available
+        caches = getattr(settings, 'CACHES', {})
+        if 'default' in caches and 'OPTIONS' in caches['default']:
+            options = caches['default']['OPTIONS'].copy()
+        
+        # Override decode_responses since we pass it explicitly
+        options['decode_responses'] = decode_responses
+        
+        client = redis.Redis.from_url(redis_url, **options)
         # Hack to cache the decoding config for reuse check
         client._decode_responses = decode_responses
         
