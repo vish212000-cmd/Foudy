@@ -9,7 +9,7 @@ export class ChatService {
 
     static async getMessages(roomId: string) {
         const res = await api.get(`/chat/rooms/${roomId}/messages/`);
-        return res.data;
+        return res.data.results !== undefined ? res.data.results : res.data;
     }
 
     private sendWithAck(event: string, payload: any) {

@@ -6,7 +6,7 @@ class RoomService {
 
   async getRooms(): Promise<RoomMetadata[]> {
     const res = await api.get(`${this.baseUrl}/`);
-    return res.data;
+    return res.data.results !== undefined ? res.data.results : res.data;
   }
 
   async createRoom(maxParticipants = 10, settings = {}): Promise<RoomMetadata> {
