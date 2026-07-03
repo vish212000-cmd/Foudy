@@ -52,8 +52,11 @@ class QueueRepository:
         if not data:
             return None
         
-        # Decode byte strings
-        decoded = {k.decode('utf-8'): v.decode('utf-8') for k, v in data.items()}
+        decoded = {}
+        for k, v in data.items():
+            k_str = k.decode('utf-8') if isinstance(k, bytes) else str(k)
+            v_str = v.decode('utf-8') if isinstance(v, bytes) else str(v)
+            decoded[k_str] = v_str
         
         # Parse JSON fields
         if 'preferences' in decoded:

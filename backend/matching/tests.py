@@ -112,7 +112,7 @@ class MatchmakingRuntimeTests(TestCase):
             pass # ignore redis errors on default cache
             
         self.mock_redis = MockRedis()
-        self.patcher = patch('matching.repository.get_redis_client', return_value=self.mock_redis)
+        self.patcher = patch('core.redis_client.get_redis_client', return_value=self.mock_redis)
         self.patcher.start()
         
         # also patch ModerationRedisClient which is called in Join Queue
