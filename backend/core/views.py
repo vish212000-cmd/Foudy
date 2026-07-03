@@ -45,16 +45,37 @@ def health_email(request):
         return JsonResponse({"status": "healthy", "email": "resend"})
     return JsonResponse({"status": "unhealthy", "error": "RESEND_API_KEY missing"}, status=503)
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def health_version(request):
-    is_render = os.environ.get('RENDER', '').lower() == 'true'
-    return JsonResponse({
+    import sys
+    import django
+    
+    commit = os.environ.get("RENDER_GIT_COMMIT", "unknown")
+    build_date = os.environ.get("BUILD_DATE", "unknown")
+    environment = os.environ.get("DJANGO_ENV", "development")
+    service_id = os.environ.get("RENDER_SERVICE_ID", "unknown")
+    instance_id = os.environ.get("RENDER_INSTANCE_ID", "unknown")
+    
+    git_branch = os.environ.get("RENDER_GIT_BRANCH", "unknown")
+    build_number = os.environ.get("BUILD_NUMBER", "unknown")
+    ci_provider = os.environ.get("CI_PROVIDER", "unknown")
+    workflow_run = os.environ.get("WORKFLOW_RUN", "unknown")
+    
+    return Response({
         "status": "healthy",
-        "version": os.environ.get('APP_VERSION', '1.0.0'),
-        "git_commit": os.environ.get('RENDER_GIT_COMMIT', os.environ.get('GIT_COMMIT', 'unknown')),
-        "build_date": os.environ.get('BUILD_DATE', 'unknown'),
-        "environment": "production" if is_render else os.environ.get('ENV', 'development'),
-        "render_service_id": os.environ.get('RENDER_SERVICE_ID', 'unknown'),
-        "render_instance_id": os.environ.get('RENDER_INSTANCE_ID', 'unknown')
+        "version": "1.0.0",
+        "git_commit": commit,
+        "git_branch": git_branch,
+        "build_number": build_number,
+        "build_date": build_date,
+        "ci_provider": ci_provider,
+        "workflow_run": workflow_run,
+        "environment": environment,
+        "render_service_id": service_id,
+        "render_instance_id": instance_id,
+        "python_version": sys.version.split()[0],
+        "django_version": django.get_version()
     })
 
 
