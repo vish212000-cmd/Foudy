@@ -131,7 +131,7 @@ class RedisQueue:
         """
         # Get users sorted by score (timestamp ascending)
         users = self.redis.zrange(self.queue_key, 0, limit - 1)
-        return [int(u.decode('utf-8')) for u in users]
+        return [int(u) for u in users]
 
     def count(self) -> int:
         return self.redis.zcard(self.queue_key)

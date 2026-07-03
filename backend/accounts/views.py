@@ -332,7 +332,9 @@ class PasswordResetConfirmView(APIView):
             return Response({"error": "Invalid token or user ID"}, status=status.HTTP_400_BAD_REQUEST)
             
         stored_user_id = redis_client.get(RedisNamespaces.auth_reset_token(token))
-        if not stored_user_id or stored_user_id.decode('utf-8') != str(user.id):
+        if stored_user_id and isinstance(stored_user_id, bytes):
+            stored_user_id = stored_user_id.decode('utf-8')
+        if not stored_user_id or stored_user_id != str(user.id):
             return Response({"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST)
             
         user.set_password(new_password)
@@ -400,7 +402,9 @@ class EmailVerificationConfirmView(APIView):
             return Response({"error": "Invalid token or user ID"}, status=status.HTTP_400_BAD_REQUEST)
             
         stored_user_id = redis_client.get(RedisNamespaces.auth_verify_token(token))
-        if not stored_user_id or stored_user_id.decode('utf-8') != str(user.id):
+        if stored_user_id and isinstance(stored_user_id, bytes):
+            stored_user_id = stored_user_id.decode('utf-8')
+        if not stored_user_id or stored_user_id != str(user.id):
             return Response({"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST)
             
         user.is_email_verified = True

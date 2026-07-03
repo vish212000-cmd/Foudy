@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Bell, Shield, Paintbrush, ShieldAlert, 
@@ -27,6 +28,7 @@ const upgradeSchema = z.object({
 type UpgradeFormValues = z.infer<typeof upgradeSchema>;
 
 export function Settings() {
+  const navigate = useNavigate();
   const { user, updateUser } = useAuthStore();
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
   

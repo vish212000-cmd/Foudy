@@ -41,10 +41,12 @@ class PeerRepository:
         if not data:
             return None
             
-        return {
-            k.decode('utf-8'): v.decode('utf-8')
-            for k, v in data.items()
-        }
+        res = {}
+        for k, v in data.items():
+            k_str = k.decode('utf-8') if isinstance(k, bytes) else str(k)
+            v_str = v.decode('utf-8') if isinstance(v, bytes) else str(v)
+            res[k_str] = v_str
+        return res
 
     def create_session(self, match_id: int, user_a_id: int, user_b_id: int):
         session = {

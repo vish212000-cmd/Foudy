@@ -41,7 +41,9 @@ class RedisPresenceRepository:
         state = self.redis.hget(self._user_key(user_id), "state")
         if not state:
             return PresenceState.OFFLINE
-        return state.decode('utf-8')
+        if isinstance(state, bytes):
+            return state.decode('utf-8')
+        return str(state)
 
     def set_state(self, user_id: int, state: str):
         self.redis.hset(self._user_key(user_id), "state", state)
