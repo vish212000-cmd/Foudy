@@ -104,7 +104,7 @@ class RegisterView(APIView):
         redis_client.setex(
             RedisNamespaces.auth_verify_token(token),
             RedisTTL.AUTH_VERIFY_TOKEN,
-            user.id
+            str(user.id)
         )
         verify_link = f"{settings.FRONTEND_URL}/verify-email?uid={uid}&token={token}"
         send_mail(
@@ -298,7 +298,7 @@ class PasswordResetRequestView(APIView):
             redis_client.setex(
                 RedisNamespaces.auth_reset_token(token),
                 RedisTTL.AUTH_RESET_TOKEN,
-                user.id
+                str(user.id)
             )
             
             reset_link = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
@@ -367,7 +367,7 @@ class EmailVerificationRequestView(APIView):
         redis_client.setex(
             RedisNamespaces.auth_verify_token(token),
             RedisTTL.AUTH_VERIFY_TOKEN,
-            user.id
+            str(user.id)
         )
         
         verify_link = f"{settings.FRONTEND_URL}/verify-email?uid={uid}&token={token}"
