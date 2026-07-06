@@ -9,52 +9,70 @@ API_URL = "https://foudy.onrender.com"
 def fetch_health():
     return requests.get(f"{API_URL}/health/version/", timeout=10.0)
 
-def verify_deployment(target_commit: str, scorecard: dict, artifacts_dir: str):
-    print("--- VERIFYING DEPLOYMENT ---")
+def get_deployment_metadata(scorecard: dict):
     try:
         res = fetch_health()
         if res.status_code != 200:
             print(f"❌ Failed to reach health endpoint. Status: {res.status_code}")
             scorecard["Exit Code"] = 2
             sys.exit(2)
-        
-        data = res.json()
-        print(f"GET /health/version/ - {res.status_code}")
-        print(json.dumps(data, indent=2))
-        
+            print(f"Failed to reach health endpoint. Status: {res.status_code}".encode('utf-8', 'replace').decode('ascii', 'replace'))
+            scorecard["Exit Code"] = 2
+            scorecard["Failure Classification"] = ["Infrastructure"]
+            scorecard["Deployment"] = "FAIL"
+            return None
+        return res.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error checking version: {e}".encode('utf-8', 'replace').decode('ascii', 'replace'))
+        scorecard["Deployment"] = "FAIL"
+        return None
+
+def verify_deployment(target_commit: str, scorecard: dict, artifacts_dir: str):
+    print("--- VERIFYING DEPLOYMENT ---")
+    try:
+        data = get_deployment_metadata(scorecard)
+        if not data:
+            return False
+            
         with open(f"{artifacts_dir}/deployment.json", "w") as f:
             json.dump(data, f, indent=2)
             
         scorecard["Deployment_Info"] = data
         
-        if data.get("environment") != "production":
-            print("❌ Environment is not production.")
-            scorecard["Exit Code"] = 2
-            sys.exit(2)
+        # Verify Critical Fields
+        commit = data.get("git_commit", "unknown")
+        env = data.get("environment", "unknown")
+        
+        critical_errors = []
+        if not commit.startswith(target_commit):
+            critical_errors.append(f"Commit mismatch: Expected {target_commit}, got {commit}")
+        if env != "production":
+            critical_errors.append(f"Environment mismatch: Expected production, got {env}")
             
-        commit = data.get("git_commit", "")
-        if target_commit and not commit.startswith(target_commit):
-            print(f"❌ Git commit mismatch. Expected: {target_commit}, Got: {commit}")
+        if critical_errors:
+            msg = "CRITICAL DEPLOYMENT ERRORS:\n" + "\n".join(critical_errors)
+            print(msg.encode('utf-8', 'replace').decode('ascii', 'replace'))
+            scorecard["Deployment"] = "FAIL"
             scorecard["Exit Code"] = 2
-            sys.exit(2)
+            scorecard["Failure Classification"] = ["Deployment"]
+            return False
             
-        # Warning metadata (does not exit)
+        # Check warnings
         warnings = []
         if data.get("build_date") == "unknown":
             warnings.append("build_date")
-        if data.get("build_number") == "unknown":
-            warnings.append("build_number")
-        if data.get("git_branch") == "unknown":
-            warnings.append("git_branch")
-        if data.get("ci_provider") == "unknown":
-            warnings.append("ci_provider")
+        if data.get("render_service_id") == "unknown":
+            warnings.append("render_service_id")
             
         if warnings:
-            print(f"⚠️  Missing metadata fields (warnings only): {', '.join(warnings)}")
+            print(f"Missing metadata fields (warnings only): {', '.join(warnings)}".encode('utf-8', 'replace').decode('ascii', 'replace'))
             
         scorecard["Deployment"] = "PASS"
-        print("✅ Deployment verification passed.\n")
+        return True
+        
     except Exception as e:
-        print(f"❌ Error during deployment verification: {e}")
+        print(f"Error during deployment verification: {e}".encode('utf-8', 'replace').decode('ascii', 'replace'))
+        scorecard["Deployment"] = "FAIL"
         scorecard["Exit Code"] = 3
-        sys.exit(3)  # Infrastructure unavailable
+        scorecard["Failure Classification"] = ["Infrastructure"]
+        return False

@@ -1,0 +1,36 @@
+{
+  "Deployment": "PASS",
+  "Authentication": "PASS",
+  "Guest Login": "PASS",
+  "Registration": "FAIL",
+  "Password Reset": "FAIL",
+  "Google OAuth": "FAIL",
+  "WebSocket Handshake": "FAIL",
+  "Matchmaking": "FAIL",
+  "Room Creation": "FAIL",
+  "WebRTC Signaling": "FAIL",
+  "Media Connection": "FAIL",
+  "Frontend": "FAIL",
+  "Cleanup": "FAIL",
+  "Console Errors": 0,
+  "Network 500": 0,
+  "React Errors": 0,
+  "WebSocket Disconnects": 0,
+  "WebSocket Retries": 0,
+  "Overall Result": "NO-GO",
+  "Exit Code": 3,
+  "Start Time": "2026-07-06T07:00:01.056654Z",
+  "Deployment_Info": {
+    "status": "healthy",
+    "version": "1.0.0",
+    "git_commit": "b49e7c3dba62e67f32fa8571d7b0b0af9301c760",
+    "build_date": "unknown",
+    "environment": "production",
+    "render_service_id": "srv-d8vptspo3t8c73bj27r0",
+    "render_instance_id": "srv-d8vptspo3t8c73bj27r0-hibernate-d46689bcb-hp49d"
+  },
+  "Failure Classification": [
+    "Infrastructure",
+    "Test Framework"
+  ]
+}

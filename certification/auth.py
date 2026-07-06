@@ -34,8 +34,14 @@ def authenticate_guests(scorecard: dict, metrics: dict):
     if token_a and token_b:
         scorecard["Authentication"] = "PASS"
         scorecard["Guest Login"] = "PASS"
-        print("✅ Guest Authentication passed.\n")
+        try:
+            print("✅ Guest Authentication passed.\n")
+        except:
+            print("Guest Authentication passed.\n")
         return token_a, token_b
     else:
-        print("❌ Failed to authenticate guests.")
+        try:
+            print("❌ Failed to authenticate guests.")
+        except:
+            print("Failed to authenticate guests.")
         return None, None

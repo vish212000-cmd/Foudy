@@ -44,11 +44,28 @@ def run_playwright_tests(scorecard: dict, metrics: dict, artifacts_dir: str):
             shutil.copytree(test_results_dir, os.path.join(artifacts_dir, "test-results"), dirs_exist_ok=True)
             
         if result.returncode != 0:
-            print("❌ Playwright certification failed.")
+            try:
+                print("❌ Playwright certification failed.")
+            except:
+                print("Playwright certification failed.")
+            
+            if result.returncode == 2:
+                scorecard["Exit Code"] = 2
+                scorecard["Failure Classification"] = ["Frontend", "Deployment Drift"]
+            elif scorecard.get("Exit Code", 1) == 0:
+                scorecard["Exit Code"] = 1
+                
             return False
             
-        print("✅ Playwright browser verification passed.")
+        try:
+            print("✅ Playwright browser verification passed.")
+        except:
+            print("Playwright browser verification passed.")
         return True
     except Exception as e:
-        print(f"❌ Error running Playwright: {e}")
+        try:
+            print(f"❌ Error running Playwright: {e}")
+        except:
+            print(f"Error running Playwright: {e}")
+        scorecard["Failure Classification"] = ["Infrastructure", "Test Framework"]
         return False

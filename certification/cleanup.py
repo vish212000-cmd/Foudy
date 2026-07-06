@@ -33,8 +33,15 @@ def verify_cleanup(token_a: str, token_b: str, scorecard: dict):
     
     if success_a and success_b:
         scorecard["Cleanup"] = "PASS"
-        print("✅ Cleanup verified: No orphaned queue state.")
+        try:
+            print("✅ Cleanup verified: Users successfully left the queue.")
+        except:
+            print("Cleanup verified: Users successfully left the queue.")
+        scorecard["Cleanup"] = "PASS"
         return True
     else:
-        print("❌ Cleanup failed: One or both users received an error on re-join.")
+        try:
+            print("❌ Cleanup verification failed.")
+        except:
+            print("Cleanup verification failed.")
         return False

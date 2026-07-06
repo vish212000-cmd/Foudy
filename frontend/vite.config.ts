@@ -16,6 +16,8 @@ const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(file
 export default defineConfig({
   define: {
     __GIT_COMMIT__: JSON.stringify(process.env.RENDER_GIT_COMMIT || process.env.VITE_GIT_COMMIT || 'unknown'),
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+    __BUILD_NUMBER__: JSON.stringify(process.env.GITHUB_RUN_ID || process.env.RENDER_EXTERNAL_ID || `local-${Date.now()}`),
   },
   plugins: [
     react(), 

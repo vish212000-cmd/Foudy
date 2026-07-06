@@ -1,0 +1,27 @@
+{
+  "Deployment": "FAIL",
+  "Authentication": "PASS",
+  "Guest Login": "PASS",
+  "Registration": "FAIL",
+  "Password Reset": "FAIL",
+  "Google OAuth": "FAIL",
+  "WebSocket Handshake": "FAIL",
+  "Matchmaking": "FAIL",
+  "Room Creation": "FAIL",
+  "WebRTC Signaling": "FAIL",
+  "Media Connection": "FAIL",
+  "Frontend": "FAIL",
+  "Cleanup": "FAIL",
+  "Console Errors": 0,
+  "Network 500": 0,
+  "React Errors": 0,
+  "WebSocket Disconnects": 0,
+  "WebSocket Retries": 0,
+  "Overall Result": "NO-GO",
+  "Exit Code": 3,
+  "Start Time": "2026-07-06T06:58:58.521803Z",
+  "Failure Classification": [
+    "Infrastructure",
+    "Test Framework"
+  ]
+}

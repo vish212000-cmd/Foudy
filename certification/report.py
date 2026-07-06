@@ -7,46 +7,56 @@ def generate_report(scorecard: dict, metrics: dict, artifacts_dir: str):
     
     cert_id = os.path.basename(artifacts_dir).replace("-", "").replace("_", "-")
     
-    # Calculate duration
     start_time = scorecard.get("Start Time")
     end_time = datetime.utcnow()
     duration_str = "UNKNOWN"
     if start_time:
-        duration = end_time - start_time
-        duration_str = f"{duration.total_seconds():.1f}s"
-        
-    start_str = start_time.isoformat() + "Z" if start_time else "UNKNOWN"
+        if isinstance(start_time, str):
+            try:
+                start_time = datetime.fromisoformat(start_time.replace("Z", ""))
+            except:
+                pass
+        if isinstance(start_time, datetime):
+            duration = end_time - start_time
+            duration_str = f"{duration.total_seconds():.1f}s"
+            
+    start_str = start_time.isoformat() + "Z" if isinstance(start_time, datetime) else "UNKNOWN"
     end_str = end_time.isoformat() + "Z"
     
-    # Define pipeline order
     pipeline = [
         "Deployment",
         "Landing Page",
         "Guest Login",
         "Profile",
-        "Queue",
+        "Queue Join",
+        "Queue Wait",
+        "Match Found",
+        "Room Creation",
         "WebSocket",
-        "Matchmaking",
-        "Room",
-        "WebRTC",
+        "Offer",
+        "Answer",
+        "ICE Connected",
+        "Remote Track",
         "Cleanup"
     ]
     
-    # Map scorecard keys to pipeline
     key_map = {
         "Deployment": "Deployment",
         "Authentication": "Guest Login",
         "WebSocket Handshake": "WebSocket",
-        "Matchmaking": "Matchmaking",
-        "Room Creation": "Room",
-        "Media Connection": "WebRTC",
+        "Matchmaking": "Match Found",
+        "Room Creation": "Room Creation",
+        "WebRTC Signaling": "Offer",
+        "Media Connection": "Remote Track",
         "Cleanup": "Cleanup"
     }
     
-    # Special logic for frontend failure inside playwright
     if scorecard.get("Frontend") == "FAIL":
-        scorecard["Guest Login"] = "FAIL"
+        if "Guest Login" not in scorecard or scorecard["Guest Login"] != "PASS":
+            scorecard["Guest Login"] = "FAIL"
         
+    exit_code = scorecard.get("Exit Code", 1)
+    
     pipeline_state = {}
     blocked = False
     failed_stage = None
@@ -55,14 +65,12 @@ def generate_report(scorecard: dict, metrics: dict, artifacts_dir: str):
             pipeline_state[stage] = "BLOCKED"
             continue
             
-        # Find corresponding scorecard value
-        val = "PASS" # Default if not explicitly failed
+        val = "PASS"
         for s_key, s_mapped in key_map.items():
             if s_mapped == stage and scorecard.get(s_key) == "FAIL":
                 val = "FAIL"
                 break
         
-        # Check explicit stages
         if scorecard.get(stage) == "FAIL":
             val = "FAIL"
             
@@ -71,10 +79,22 @@ def generate_report(scorecard: dict, metrics: dict, artifacts_dir: str):
             blocked = True
             failed_stage = stage
             
-    overall = scorecard.get("Overall Result", "NO-GO")
-    exit_code = scorecard.get("Exit Code", 1)
+    if exit_code == 3 and failed_stage:
+        pipeline_state[failed_stage] = "ERROR"
+            
+    frontend_ver = scorecard.get("Frontend Version", "UNKNOWN")
+    backend_ver = dep.get("git_commit", "UNKNOWN")
+    drift_block = ""
+    if exit_code == 2:
+        drift_block = f"""
+Frontend Version .. {frontend_ver}
+Backend Version ... {backend_ver}
+Deployment Drift .. YES
+
+"""
     
-    # Classifications
+    overall = scorecard.get("Overall Result", "NO-GO")
+    
     classifications = {
         "Infrastructure": False,
         "Deployment": False,
@@ -90,32 +110,33 @@ def generate_report(scorecard: dict, metrics: dict, artifacts_dir: str):
         "Performance": False
     }
     
-    # Check provided tags
     tags = scorecard.get("Failure Classification", [])
     for t in tags:
         if t in classifications:
             classifications[t] = True
             
-    # Auto-classify based on failed stage if tags empty
     if not tags and failed_stage:
         if failed_stage in ["Guest Login", "Landing Page"]:
             classifications["Frontend"] = True
         elif failed_stage == "Deployment":
             classifications["Deployment"] = True
-        elif failed_stage == "WebSocket":
-            classifications["WebSocket"] = True
-        elif failed_stage == "WebRTC":
-            classifications["WebRTC"] = True
+        elif exit_code == 3:
+            classifications["Infrastructure"] = True
             
     class_str = "Failure Type\\n\\n"
     for k, v in classifications.items():
         mark = "✓" if v else "☐"
         class_str += f"{mark} {k}\\n"
+        
+    def get_avg_metric(key):
+        vals = metrics.get(key, [])
+        if not vals: return "N/A"
+        return str(sum(vals)//len(vals))
 
     report = f"""FOUDY Production Certification
 ==============================
 
-Certification Framework: v1.0.0
+Certification Framework: v1.1.0
 Certification ID: {cert_id}
 
 Commit:
@@ -141,24 +162,37 @@ Certification Finished: {end_str}
 Total Duration:         {duration_str}
 
 Deployment ........ {pipeline_state.get("Deployment")}
-Landing Page ...... {pipeline_state.get("Landing Page")}
+{drift_block}Landing Page ...... {pipeline_state.get("Landing Page")}
 Guest Login ....... {pipeline_state.get("Guest Login")}
 Profile ........... {pipeline_state.get("Profile")}
-Queue ............. {pipeline_state.get("Queue")}
+Queue Join ........ {pipeline_state.get("Queue Join")}
+Queue Wait ........ {pipeline_state.get("Queue Wait")}
+Match Found ....... {pipeline_state.get("Match Found")}
+Room Creation ..... {pipeline_state.get("Room Creation")}
 WebSocket ......... {pipeline_state.get("WebSocket")}
-Matchmaking ....... {pipeline_state.get("Matchmaking")}
-Room .............. {pipeline_state.get("Room")}
-WebRTC ............ {pipeline_state.get("WebRTC")}
+Offer ............. {pipeline_state.get("Offer")}
+Answer ............ {pipeline_state.get("Answer")}
+ICE Connected ..... {pipeline_state.get("ICE Connected")}
+Remote Track ...... {pipeline_state.get("Remote Track")}
 Cleanup ........... {pipeline_state.get("Cleanup")}
 
 Performance
 
-Guest Login ............ {metrics.get('Authentication Latency', [0])[0]} ms
-Queue Join ............. {metrics.get('Queue Join Latency', [0])[0]} ms
-Matchmaking ............ {metrics.get('Matchmaking Latency', [0])[0]} ms
-WebSocket Connect ...... {metrics.get('WebSocket Connect Time', [0])[0]} ms
-ICE Connected .......... {metrics.get('ICE Connection Time', [0])[0]} ms
-Remote Video ........... {metrics.get('Time to First Remote Video Frame', [0])[0]} ms
+Landing Page ........... {get_avg_metric("Landing Page")} ms
+Guest Login ............ {get_avg_metric("Guest Login")} ms
+Profile ................ {get_avg_metric("Profile")} ms
+Queue Join ............. {get_avg_metric("Queue Join")} ms
+Queue Wait ............. {get_avg_metric("Queue Wait")} ms
+Match Found ............ {get_avg_metric("Match Found")} ms
+Room Creation .......... {get_avg_metric("Room Creation")} ms
+WS Handshake ........... {get_avg_metric("WebSocket Connect Time")} ms
+Offer .................. {get_avg_metric("Offer")} ms
+Answer ................. {get_avg_metric("Answer")} ms
+ICE Connected .......... {get_avg_metric("ICE Connected")} ms
+Remote Video ........... {get_avg_metric("Remote Video")} ms
+
+Retries
+WebSocket Connect ...... {scorecard.get('WebSocket Retries', 0)}
 
 Console Errors ......... {scorecard.get('Console Errors', 0)}
 Network 500 ............ {scorecard.get('Network 500', 0)}
@@ -178,16 +212,19 @@ Release Approved: {"YES" if overall == "GO" else "NO"}
 Exit Code: {exit_code}
 """
 
-    # Save Markdown report
-    with open(os.path.join(artifacts_dir, "certification_report.md"), "w") as f:
+    with open(os.path.join(artifacts_dir, "scorecard.md"), "w", encoding="utf-8") as f:
         f.write(report)
         
-    # Save JSON scorecard
-    # We must stringify datetime objects before json dump
-    if "Start Time" in scorecard:
+    if "Start Time" in scorecard and isinstance(scorecard["Start Time"], datetime):
         scorecard["Start Time"] = scorecard["Start Time"].isoformat() + "Z"
         
-    with open(os.path.join(artifacts_dir, "certification_scorecard.json"), "w") as f:
+    with open(os.path.join(artifacts_dir, "scorecard.json"), "w") as f:
         json.dump(scorecard, f, indent=2)
+        
+    with open(os.path.join(artifacts_dir, "metrics.json"), "w") as f:
+        json.dump(metrics, f, indent=2)
 
-    print("\\n" + report + "\\n")
+    try:
+        print("\\n" + report + "\\n")
+    except UnicodeEncodeError:
+        print("\\n" + report.encode('ascii', 'ignore').decode('ascii') + "\\n")

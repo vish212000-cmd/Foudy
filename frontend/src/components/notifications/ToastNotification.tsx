@@ -33,8 +33,6 @@ export const ToastNotification: React.FC = () => {
                         ×
                     </button>
                 </div>
-                    ×
-                </button>
             </div>
         </div>
     );
