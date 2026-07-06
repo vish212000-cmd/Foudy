@@ -67,7 +67,7 @@ def health_version(request):
     
     return Response({
         "status": "healthy",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "git_commit": commit,
         "git_branch": git_branch,
         "build_number": build_number,
