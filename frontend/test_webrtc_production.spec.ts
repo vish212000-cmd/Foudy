@@ -107,7 +107,7 @@ function setupPageLogging(page: Page, label: string) {
   });
 
   page.on('websocket', ws => {
-    wsStartTime = Date.now();
+    let wsStartTime = Date.now();
     scorecard["WebSocket Handshake"] = "PASS";
     scorecard["WebSocket Retries"]++;
     metrics["WebSocket Connect Time"].push(50); // mock latency
@@ -163,7 +163,7 @@ function setupPageLogging(page: Page, label: string) {
     });
     
     ws.on('close', () => {
-      console.log(`[${label}] WEBSOCKET DISCONNECTED`);
+      console.log(`[${label}] WEBSOCKET DISCONNECTED ${ws.url()}`);
       scorecard["WebSocket Disconnects"]++;
     });
   });
@@ -249,11 +249,14 @@ test('Production WebRTC Certification', async ({ browser }) => {
     await pageB.click('button:has-text("Save")');
   }
 
-  await pageA.click('button:has-text("Join Queue")');
-  await pageB.click('button:has-text("Join Queue")');
+  await pageA.goto('/match');
+  await pageB.goto('/match');
 
-  await expect(pageA.locator('text=Match Found').or(pageA.locator('text=Connecting'))).toBeVisible({ timeout: 15000 });
-  await expect(pageB.locator('text=Match Found').or(pageB.locator('text=Connecting'))).toBeVisible({ timeout: 15000 });
+  await pageA.click('button:has-text("Start Matching")');
+  await pageB.click('button:has-text("Start Matching")');
+
+  await expect(pageA.locator('text=Connecting').or(pageA.locator('text=Connecting to global'))).toBeVisible({ timeout: 15000 });
+  await expect(pageB.locator('text=Connecting').or(pageB.locator('text=Connecting to global'))).toBeVisible({ timeout: 15000 });
 
   const verifyVideo = async (page: Page, label: string) => {
     await expect(page.locator('video')).toHaveCount(2, { timeout: 15000 }); 

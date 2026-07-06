@@ -56,7 +56,7 @@ export default function RandomMatch() {
   useEffect(() => {
     // Matchmaking Gate
     const score = user?.profile?.completion_score || 0;
-    if (score < 70) {
+    if (score < 70 && !user?.is_guest) {
       navigate('/setup', { replace: true });
     }
   }, [user, navigate]);
