@@ -130,6 +130,7 @@ export function Welcome() {
             size="lg"
             className="w-full"
             aria-label="Get started with FOUDY"
+            data-testid="guest-login"
             onClick={handleGuestLogin}
             disabled={isLoading}
           >

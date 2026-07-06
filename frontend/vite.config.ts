@@ -14,6 +14,9 @@ const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(file
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
+  define: {
+    __GIT_COMMIT__: JSON.stringify(process.env.RENDER_GIT_COMMIT || process.env.VITE_GIT_COMMIT || 'unknown'),
+  },
   plugins: [
     react(), 
     tailwindcss(),
