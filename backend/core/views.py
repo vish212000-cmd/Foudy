@@ -56,7 +56,7 @@ def health_version(request):
     
     commit = os.environ.get("RENDER_GIT_COMMIT", "unknown")
     build_date = os.environ.get("BUILD_DATE", "unknown")
-    environment = os.environ.get("DJANGO_ENV", "development")
+    environment = os.environ.get("DJANGO_ENV", os.environ.get("ENVIRONMENT", "production" if "RENDER" in os.environ else "development"))
     service_id = os.environ.get("RENDER_SERVICE_ID", "unknown")
     instance_id = os.environ.get("RENDER_INSTANCE_ID", "unknown")
     

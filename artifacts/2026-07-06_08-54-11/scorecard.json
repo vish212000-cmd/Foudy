@@ -1,0 +1,41 @@
+{
+  "Deployment": "FAIL",
+  "Authentication": "PASS",
+  "Guest Login": "PASS",
+  "Registration": "FAIL",
+  "Password Reset": "FAIL",
+  "Google OAuth": "FAIL",
+  "WebSocket Handshake": "FAIL",
+  "Matchmaking": "FAIL",
+  "Room Creation": "FAIL",
+  "WebRTC Signaling": "FAIL",
+  "Media Connection": "FAIL",
+  "Frontend": "FAIL",
+  "Cleanup": "FAIL",
+  "Console Errors": 0,
+  "Network 500": 0,
+  "React Errors": 0,
+  "WebSocket Disconnects": 0,
+  "WebSocket Retries": 0,
+  "Overall Result": "NO-GO",
+  "Exit Code": 2,
+  "Start Time": "2026-07-06T08:54:11.821576Z",
+  "Deployment_Info": {
+    "status": "healthy",
+    "version": "1.0.0",
+    "git_commit": "18a8bf87e577c5a18feba6f46cb517a4c811c1f9",
+    "git_branch": "main",
+    "build_number": "unknown",
+    "build_date": "unknown",
+    "ci_provider": "unknown",
+    "workflow_run": "unknown",
+    "environment": "development",
+    "render_service_id": "srv-d8vptspo3t8c73bj27r0",
+    "render_instance_id": "srv-d8vptspo3t8c73bj27r0-hibernate-9974f6887-698gh",
+    "python_version": "3.12.0",
+    "django_version": "6.0.6"
+  },
+  "Failure Classification": [
+    "Deployment"
+  ]
+}
