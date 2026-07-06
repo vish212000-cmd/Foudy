@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './',
   testMatch: 'test_webrtc_production.spec.ts',
-  timeout: 60 * 1000,
+  timeout: 180 * 1000,
   expect: {
     timeout: 15000
   },

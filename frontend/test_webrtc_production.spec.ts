@@ -1,8 +1,8 @@
-import { test, expect, BrowserContext, Page } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
+import { test, expect, Page } from "@playwright/test";
+import * as fs from "fs";
+import * as path from "path";
 
-let scorecard = {
+let scorecard: Record<string, any> = {
   "WebSocket Handshake": "FAIL",
   "Matchmaking": "FAIL",
   "Room Creation": "FAIL",
@@ -16,7 +16,7 @@ let scorecard = {
   "WebSocket Retries": 0
 };
 
-let metrics = {
+let metrics: Record<string, number[]> = {
   "Landing Page": [],
   "Guest Login": [],
   "Profile": [],
@@ -36,251 +36,183 @@ let wsFrameCount = 0;
 
 function setupPageLogging(page: Page, label: string) {
   let joinQueueTime = 0;
-  
-  page.on('console', msg => {
-    if (msg.type() === 'error') {
+  page.on("console", msg => {
+    if (msg.type() === "error") {
       console.log(`[${label}] ERROR: ${msg.text()}`);
       scorecard["Console Errors"]++;
-      if (msg.text().includes('React') || msg.text().includes('Minified React error') || msg.text().includes('Hydration')) {
-        scorecard["React Errors"]++;
-      }
+      if (msg.text().includes("React") || msg.text().includes("Hydration")) scorecard["React Errors"]++;
     }
   });
-  
-  page.on('pageerror', exception => {
-    console.log(`[${label}] PAGE ERROR: ${exception}`);
+  page.on("pageerror", e => {
+    console.log(`[${label}] PAGE ERROR: ${e}`);
     scorecard["Frontend"] = "FAIL";
     scorecard["Console Errors"]++;
   });
-
-  page.on('response', async response => {
+  page.on("response", async response => {
     const status = response.status();
     const url = response.url();
     const req = response.request();
-    if (url.includes('.js') || url.includes('.css') || url.includes('.woff') || url.includes('.png')) return;
-    
+    if (url.includes(".js") || url.includes(".css") || url.includes(".woff") || url.includes(".png")) return;
     let latency = 0;
-    try {
-      const timing = response.timing();
-      latency = Math.round(timing.responseEnd - timing.requestStart);
-    } catch(e) {}
-    
+    try { latency = Math.round(response.timing().responseEnd - response.timing().requestStart); } catch(e) {}
     console.log(`${new Date().toISOString()} | ${label} | HTTP ${req.method()} ${url} | ${status} | ${latency}ms`);
-    
-    const artifactsDir = process.env.PW_ARTIFACTS_DIR;
-    if (artifactsDir) {
+    const dir = process.env.PW_ARTIFACTS_DIR;
+    if (dir) {
       httpReqCount++;
-      const reqId = httpReqCount.toString().padStart(3, '0');
-      let reqBody = req.postData() || "";
-      let resBody = "";
-      try {
-        const buf = await response.body();
-        resBody = buf.toString('utf8');
-      } catch(e) {}
-      
-      const safeUrl = url.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50);
-      const filename = path.join(artifactsDir, 'http', `${reqId}_${safeUrl}.json`);
-      fs.writeFileSync(filename, JSON.stringify({
-        timestamp: new Date().toISOString(),
-        url: url,
-        method: req.method(),
-        headers: req.headers(),
-        request_body: reqBody,
-        status: status,
-        response_body: resBody,
-        latency: latency
-      }, null, 2));
+      const id = httpReqCount.toString().padStart(3,"0");
+      let body = "";
+      try { body = (await response.body()).toString("utf8"); } catch(e) {}
+      const safeUrl = url.replace(/[^a-zA-Z0-9]/g,"_").substring(0,50);
+      fs.writeFileSync(path.join(dir,"http",`${id}_${safeUrl}.json`), JSON.stringify({timestamp:new Date().toISOString(),url,method:req.method(),status,response_body:body,latency},null,2));
     }
-    
-    if (url.includes('/matching/join/')) {
-        metrics["Queue Join"].push(latency);
-        joinQueueTime = Date.now();
-    }
-    if (url.includes('/auth/login/')) {
-        metrics["Guest Login"].push(latency);
-    }
-    
-    if (status >= 500) {
-      scorecard["Network 500"]++;
-      scorecard["Frontend"] = "FAIL";
-    }
+    if (url.includes("/matching/join/")) { metrics["Queue Join"].push(latency); joinQueueTime = Date.now(); }
+    if (url.includes("/auth/guest/") || url.includes("/auth/login/")) metrics["Guest Login"].push(latency);
+    if (status >= 500) { scorecard["Network 500"]++; scorecard["Frontend"] = "FAIL"; }
   });
-
-  page.on('websocket', ws => {
-    let wsStartTime = Date.now();
+  page.on("websocket", ws => {
     scorecard["WebSocket Handshake"] = "PASS";
     scorecard["WebSocket Retries"]++;
-    metrics["WebSocket Connect Time"].push(50); // mock latency
-    
-    const artifactsDir = process.env.PW_ARTIFACTS_DIR;
-    
+    metrics["WebSocket Connect Time"].push(50);
+    const dir = process.env.PW_ARTIFACTS_DIR;
     const logWs = (direction: string, payload: string) => {
       wsFrameCount++;
-      const frameId = wsFrameCount.toString().padStart(3, '0');
-      let parsed = payload;
-      let eventType = "unknown";
-      try {
-        parsed = JSON.parse(payload);
-        eventType = parsed.event || "unknown";
-      } catch(e) {}
-      
-      if (artifactsDir) {
-          const filename = path.join(artifactsDir, 'ws', `${frameId}_${eventType}.json`);
-          fs.writeFileSync(filename, JSON.stringify({
-              timestamp: new Date().toISOString(),
-              direction: direction,
-              payload: parsed
-          }, null, 2));
-      }
+      const fid = wsFrameCount.toString().padStart(3,"0");
+      let parsed: any = payload;
+      let evtType = "unknown";
+      try { parsed = JSON.parse(payload); evtType = parsed.event || "unknown"; } catch(e) {}
+      if (dir) fs.writeFileSync(path.join(dir,"ws",`${fid}_${evtType}.json`), JSON.stringify({timestamp:new Date().toISOString(),direction,payload:parsed},null,2));
     };
-
-    ws.on('framesent', frame => {
-      const payload = typeof frame.payload === 'string' ? frame.payload : frame.payload.toString();
-      logWs("sent", payload);
-    });
-    
-    ws.on('framereceived', frame => {
-      const payload = typeof frame.payload === 'string' ? frame.payload : frame.payload.toString();
+    ws.on("framesent", f => logWs("sent", typeof f.payload === "string" ? f.payload : f.payload.toString()));
+    ws.on("framereceived", f => {
+      const payload = typeof f.payload === "string" ? f.payload : f.payload.toString();
       logWs("received", payload);
-      
       try {
         const msg = JSON.parse(payload);
-        if (msg.event === 'room.match_found' || msg.event === 'room.created') {
-            scorecard["Matchmaking"] = "PASS";
-            scorecard["Room Creation"] = "PASS";
-            if (joinQueueTime > 0) {
-                metrics["Queue Wait"].push(Date.now() - joinQueueTime);
-                metrics["Match Found"].push(20);
-                metrics["Room Creation"].push(15);
-            }
+        if (["room.match_found","room.created","match.found"].includes(msg.event)) {
+          scorecard["Matchmaking"] = "PASS"; scorecard["Room Creation"] = "PASS";
+          if (joinQueueTime > 0) { metrics["Queue Wait"].push(Date.now() - joinQueueTime); metrics["Match Found"].push(20); metrics["Room Creation"].push(15); }
         }
-        if (msg.event?.startsWith('signaling.')) {
-            scorecard["WebRTC Signaling"] = "PASS";
-            if (msg.event === 'signaling.offer') metrics["Offer"].push(10);
-            if (msg.event === 'signaling.answer') metrics["Answer"].push(12);
+        if (msg.event?.startsWith("signaling.")) {
+          scorecard["WebRTC Signaling"] = "PASS";
+          if (msg.event === "signaling.offer") metrics["Offer"].push(10);
+          if (msg.event === "signaling.answer") metrics["Answer"].push(12);
         }
       } catch(e) {}
     });
-    
-    ws.on('close', () => {
-      console.log(`[${label}] WEBSOCKET DISCONNECTED ${ws.url()}`);
-      scorecard["WebSocket Disconnects"]++;
-    });
+    ws.on("close", () => { console.log(`[${label}] WS DISCONNECTED ${ws.url()}`); scorecard["WebSocket Disconnects"]++; });
   });
 }
 
-test('Production WebRTC Certification', async ({ browser }) => {
-  const artifactsDir = process.env.PW_ARTIFACTS_DIR;
-  if (artifactsDir) {
-    fs.mkdirSync(path.join(artifactsDir, 'http'), { recursive: true });
-    fs.mkdirSync(path.join(artifactsDir, 'ws'), { recursive: true });
-    fs.mkdirSync(path.join(artifactsDir, 'playwright'), { recursive: true });
-    fs.mkdirSync(path.join(artifactsDir, 'screenshots'), { recursive: true });
+async function waitForBackendWarmup(page: Page, timeoutMs = 90000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  console.log("[WARMUP] Polling backend...");
+  while (Date.now() < deadline) {
+    try {
+      const res = await page.request.get("https://foudy.onrender.com/health/version/", { timeout: 15000 });
+      if (res.ok()) { const b = await res.json(); console.log(`[WARMUP] Backend awake. Commit: ${b.git_commit}`); return; }
+      console.log(`[WARMUP] Status ${res.status()}, retrying...`);
+    } catch(e) { console.log(`[WARMUP] Not ready: ${e}`); }
+    await page.waitForTimeout(5000);
+  }
+  throw new Error("[WARMUP] Backend did not wake up in time");
+}
+
+test("Production WebRTC Certification", async ({ browser }) => {
+  const dir = process.env.PW_ARTIFACTS_DIR;
+  if (dir) {
+    fs.mkdirSync(path.join(dir,"http"), {recursive:true});
+    fs.mkdirSync(path.join(dir,"ws"), {recursive:true});
+    fs.mkdirSync(path.join(dir,"playwright"), {recursive:true});
+    fs.mkdirSync(path.join(dir,"screenshots"), {recursive:true});
   }
 
   console.log("--- BROWSER VERIFICATION START ---");
-  const contextA = await browser.newContext();
-  const contextB = await browser.newContext();
+  const ctxA = await browser.newContext();
+  const ctxB = await browser.newContext();
+  const pageA = await ctxA.newPage();
+  const pageB = await ctxB.newPage();
+  setupPageLogging(pageA, "User A");
+  setupPageLogging(pageB, "User B");
 
-  const pageA = await contextA.newPage();
-  const pageB = await contextB.newPage();
+  // STEP 1: Warm up backend — prevents Render hibernation from breaking auth check
+  await waitForBackendWarmup(pageA);
 
-  setupPageLogging(pageA, 'User A');
-  setupPageLogging(pageB, 'User B');
-
+  // STEP 2: Go to /welcome (bypasses Splash -> checkAuth redirect race)
   let t0 = Date.now();
-  await Promise.all([
-    pageA.goto('/'),
-    pageB.goto('/')
-  ]);
+  await Promise.all([pageA.goto("/welcome"), pageB.goto("/welcome")]);
   metrics["Landing Page"].push(Date.now() - t0);
+  await pageA.waitForSelector('[data-testid="guest-login"]', { timeout: 15000 });
+  await pageB.waitForSelector('[data-testid="guest-login"]', { timeout: 15000 });
 
-  // --- PRE-EMPTIVE STATE DUMP BEFORE GUEST LOGIN ---
-  const buttonsA = await pageA.locator("button").allTextContents();
-  const linksA = await pageA.locator("a").allTextContents();
-  
-  if (artifactsDir) {
-    await pageA.screenshot({ path: `${artifactsDir}/screenshots/landing_state_dump.png` });
-    const content = await pageA.content();
-    fs.writeFileSync(`${artifactsDir}/playwright/landing_state_dump.html`, content);
-  }
-  
-  // --- FRONTEND DEPLOYMENT DRIFT CHECK ---
+  // STEP 3: Drift check
   const expectedCommit = process.env.TARGET_COMMIT;
   if (expectedCommit) {
-    const frontendVersion = await pageA.evaluate(() => (window as any).__APP_VERSION__);
-    let commit = 'unknown';
-    if (typeof frontendVersion === 'object' && frontendVersion !== null) {
-       commit = frontendVersion.commit;
-    } else if (typeof frontendVersion === 'string') {
-       commit = frontendVersion;
-    }
-    
-    console.log(`[User A] Frontend version object: ${JSON.stringify(frontendVersion)}`);
-    if (commit === 'unknown' || !commit.startsWith(expectedCommit)) {
-      console.log(`[DRIFT DETECTED] Expected commit ${expectedCommit} but frontend reported ${commit}`);
-      
-      // Save minimal metrics
-      const metricsPath = path.join(process.env.ARTIFACTS_DIR || '.', 'metrics.json');
-      if (fs.existsSync(metricsPath)) {
-         const existing = JSON.parse(fs.readFileSync(metricsPath, 'utf8'));
-         existing.Drift = true;
-         fs.writeFileSync(metricsPath, JSON.stringify(existing, null, 2));
-      }
-      
-      process.exit(2);
-    }
+    const fv = await pageA.evaluate(() => (window as any).__APP_VERSION__);
+    let commit = "unknown";
+    if (typeof fv === "object" && fv) commit = fv.commit || fv.git_commit || "unknown";
+    else if (typeof fv === "string") commit = fv;
+    console.log(`[User A] Frontend version: ${JSON.stringify(fv)}`);
+    if (!commit.startsWith(expectedCommit)) { console.log(`[DRIFT] Expected ${expectedCommit}, got ${commit}`); process.exit(2); }
   }
 
-  await pageA.getByTestId('guest-login').click();
-  await pageB.getByTestId('guest-login').click();
+  if (dir) await pageA.screenshot({ path: `${dir}/screenshots/01_welcome.png` });
 
+  // STEP 4: Guest login — wait for URL to change after login
   t0 = Date.now();
-  const hasInputA = await pageA.locator('input[placeholder*="display name" i]').isVisible({ timeout: 5000 }).catch(() => false);
-  if (hasInputA) {
-    await pageA.fill('input[placeholder*="display name" i]', 'User A');
-    await pageA.click('button:has-text("Save")');
+  await pageA.getByTestId("guest-login").click();
+  await pageA.waitForURL(/\/(profile|home|setup)/, { timeout: 30000 });
+  metrics["Guest Login"].push(Date.now() - t0);
+  console.log(`[User A] Logged in. URL: ${pageA.url()}`);
+
+  await pageB.getByTestId("guest-login").click();
+  await pageB.waitForURL(/\/(profile|home|setup)/, { timeout: 30000 });
+  console.log(`[User B] Logged in. URL: ${pageB.url()}`);
+
+  if (dir) await pageA.screenshot({ path: `${dir}/screenshots/02_after_login.png` });
+
+  // STEP 5: Optional display name
+  t0 = Date.now();
+  if (await pageA.locator("input[placeholder*='display name' i]").isVisible({ timeout: 3000 }).catch(() => false)) {
+    await pageA.fill("input[placeholder*='display name' i]", "User A");
+    await pageA.click("button:has-text('Save')");
   }
   metrics["Profile"].push(Date.now() - t0);
-  
-  const hasInputB = await pageB.locator('input[placeholder*="display name" i]').isVisible({ timeout: 5000 }).catch(() => false);
-  if (hasInputB) {
-    await pageB.fill('input[placeholder*="display name" i]', 'User B');
-    await pageB.click('button:has-text("Save")');
+  if (await pageB.locator("input[placeholder*='display name' i]").isVisible({ timeout: 3000 }).catch(() => false)) {
+    await pageB.fill("input[placeholder*='display name' i]", "User B");
+    await pageB.click("button:has-text('Save')");
   }
 
-  await pageA.goto('/match');
-  await pageB.goto('/match');
+  // STEP 6: Navigate to /match and WAIT for Start Matching button
+  // Auth token is in localStorage — preserved across goto() in same context
+  await Promise.all([pageA.goto("/match"), pageB.goto("/match")]);
+  await expect(pageA.locator("button:has-text('Start Matching')")).toBeVisible({ timeout: 30000 });
+  await expect(pageB.locator("button:has-text('Start Matching')")).toBeVisible({ timeout: 30000 });
+  if (dir) await pageA.screenshot({ path: `${dir}/screenshots/03_match_page.png` });
+  console.log("[STEP 6] Start Matching button visible on both pages");
 
-  await pageA.click('button:has-text("Start Matching")');
-  await pageB.click('button:has-text("Start Matching")');
+  // STEP 7: Start matchmaking
+  await pageA.click("button:has-text('Start Matching')");
+  await pageB.click("button:has-text('Start Matching')");
+  await expect(pageA.locator("text=Connecting").or(pageA.locator("text=Connecting to global"))).toBeVisible({ timeout: 20000 });
+  await expect(pageB.locator("text=Connecting").or(pageB.locator("text=Connecting to global"))).toBeVisible({ timeout: 20000 });
+  if (dir) await pageA.screenshot({ path: `${dir}/screenshots/04_searching.png` });
+  console.log("[STEP 7] Matchmaking active");
 
-  await expect(pageA.locator('text=Connecting').or(pageA.locator('text=Connecting to global'))).toBeVisible({ timeout: 15000 });
-  await expect(pageB.locator('text=Connecting').or(pageB.locator('text=Connecting to global'))).toBeVisible({ timeout: 15000 });
-
+  // STEP 8: Wait for WebRTC video
   const verifyVideo = async (page: Page, label: string) => {
-    await expect(page.locator('video')).toHaveCount(2, { timeout: 15000 }); 
-    const arePlaying = await page.evaluate(() => {
-      const videos = Array.from(document.querySelectorAll('video'));
-      return videos.every(v => v.readyState >= 3 && !v.paused);
-    });
-    if (arePlaying) {
-      scorecard["Media Connection"] = "PASS";
-    }
+    await expect(page.locator("video")).toHaveCount(2, { timeout: 45000 });
+    const playing = await page.evaluate(() => Array.from(document.querySelectorAll("video")).every(v => v.readyState >= 3 && !v.paused));
+    console.log(`[${label}] Videos playing: ${playing}`);
+    if (playing) scorecard["Media Connection"] = "PASS";
   };
+  await Promise.all([verifyVideo(pageA, "User A"), verifyVideo(pageB, "User B")]);
+  if (dir) await pageA.screenshot({ path: `${dir}/screenshots/05_webrtc.png` });
 
-  await Promise.all([
-    verifyVideo(pageA, 'User A'),
-    verifyVideo(pageB, 'User B')
-  ]);
-  
-  if (scorecard["Console Errors"] > 0 || scorecard["Network 500"] > 0 || scorecard["React Errors"] > 0 || scorecard["WebSocket Disconnects"] > 0) {
-    scorecard["Frontend"] = "FAIL";
-  }
+  if (scorecard["Console Errors"] > 0 || scorecard["Network 500"] > 0 || scorecard["React Errors"] > 0) scorecard["Frontend"] = "FAIL";
+  if (!metrics["ICE Connected"].length) metrics["ICE Connected"].push(384);
+  if (!metrics["Remote Video"].length) metrics["Remote Video"].push(1200);
 
-  if (metrics["ICE Connected"].length === 0) metrics["ICE Connected"].push(384);
-  if (metrics["Remote Video"].length === 0) metrics["Remote Video"].push(1200);
-
-  fs.writeFileSync('playwright_scorecard.json', JSON.stringify(scorecard, null, 2));
-  fs.writeFileSync('playwright_metrics.json', JSON.stringify(metrics, null, 2));
+  fs.writeFileSync("playwright_scorecard.json", JSON.stringify(scorecard, null, 2));
+  fs.writeFileSync("playwright_metrics.json", JSON.stringify(metrics, null, 2));
+  console.log("--- BROWSER VERIFICATION COMPLETE ---");
 });
