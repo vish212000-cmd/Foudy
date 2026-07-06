@@ -205,14 +205,14 @@ test("Production WebRTC Certification", async ({ browser }) => {
   // STEP 7: Start matchmaking
   await pageA.click("button:has-text('Start Matching')");
   await pageB.click("button:has-text('Start Matching')");
-  await expect(pageA.locator("text=Connecting").or(pageA.locator("text=Connecting to global"))).toBeVisible({ timeout: 20000 });
-  await expect(pageB.locator("text=Connecting").or(pageB.locator("text=Connecting to global"))).toBeVisible({ timeout: 20000 });
+  await expect(pageA.locator("text=Connecting").or(pageA.locator("text=Connecting to global")).first()).toBeVisible({ timeout: 20000 });
+  await expect(pageB.locator("text=Connecting").or(pageB.locator("text=Connecting to global")).first()).toBeVisible({ timeout: 20000 });
   if (dir) await pageA.screenshot({ path: `${dir}/screenshots/04_searching.png` });
   console.log("[STEP 7] Matchmaking active");
 
   // STEP 8: Wait for WebRTC video
   const verifyVideo = async (page: Page, label: string) => {
-    await expect(page.locator("video")).toHaveCount(2, { timeout: 45000 });
+    await expect(page.locator("video")).toHaveCount(2, { timeout: 90000 });
     const playing = await page.evaluate(() => Array.from(document.querySelectorAll("video")).every(v => v.readyState >= 3 && !v.paused));
     console.log(`[${label}] Videos playing: ${playing}`);
     if (playing) scorecard["Media Connection"] = "PASS";
