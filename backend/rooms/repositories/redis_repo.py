@@ -35,9 +35,9 @@ class RedisRoomRepository:
             'created_at': int(time.time())
         })
         pipe.set(self._k_state(room_id), 'CREATED')
-        pipe.set(self._k_host(room_id), host_id)
-        pipe.sadd(self._k_parts(room_id), host_id)
-        pipe.hset(self._k_presence(room_id), host_id, 'JOINING')
+        pipe.set(self._k_host(room_id), str(host_id))
+        pipe.sadd(self._k_parts(room_id), str(host_id))
+        pipe.hset(self._k_presence(room_id), str(host_id), 'JOINING')
         pipe.set(self._k_locks(room_id), '0') # 0 = unlocked, 1 = locked
         
         # Set expiry for all keys
@@ -72,7 +72,7 @@ class RedisRoomRepository:
         return uuid.UUID(host) if host else None
 
     def set_host(self, room_id: int, user_id: int):
-        self.redis.set(self._k_host(room_id), user_id, ex=self.ttl)
+        self.redis.set(self._k_host(room_id), str(user_id), ex=self.ttl)
 
     # Participants
     def get_participants(self, room_id) -> Set[uuid.UUID]:
@@ -86,11 +86,11 @@ class RedisRoomRepository:
         return self.redis.hget(self._k_presence(room_id), str(user_id))
 
     def set_participant_state(self, room_id: int, user_id: int, state: str):
-        self.redis.sadd(self._k_parts(room_id), user_id)
+        self.redis.sadd(self._k_parts(room_id), str(user_id))
         self.redis.hset(self._k_presence(room_id), str(user_id), state)
         
     def remove_participant(self, room_id: int, user_id: int):
-        self.redis.srem(self._k_parts(room_id), user_id)
+        self.redis.srem(self._k_parts(room_id), str(user_id))
         self.redis.hdel(self._k_presence(room_id), str(user_id))
 
     # Invites
