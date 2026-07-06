@@ -73,6 +73,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             
             set({ 
                 user, 
+                accessToken: token,   // ← restore from localStorage so RealtimeProvider can connect
                 isAuthenticated: true, 
                 isLoading: false 
             });

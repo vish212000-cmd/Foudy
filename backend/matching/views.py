@@ -24,9 +24,10 @@ class JoinQueueView(APIView):
             }
             
             score = profile.completion_score
+            is_guest = getattr(user, 'is_guest', False)
             
             manager = QueueManager()
-            success, message = manager.join_queue(user.id, preferences, score)
+            success, message = manager.join_queue(user.id, preferences, score, is_guest=is_guest)
             
             if success:
                 return Response({"status": "success", "message": message})

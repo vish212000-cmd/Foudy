@@ -19,12 +19,13 @@ class QueueManager:
         self.repo = QueueRepository()
         self.queue = RedisQueue()
 
-    def join_queue(self, user_id: int, preferences: Dict[str, Any], score: int) -> Tuple[bool, str]:
+    def join_queue(self, user_id: int, preferences: Dict[str, Any], score: int, is_guest: bool = False) -> Tuple[bool, str]:
         """
         Attempts to add a user to the matchmaking queue.
         Returns (success, message_or_error)
         """
-        if score < 70:
+        # Guests bypass the profile completion gate — they can match immediately
+        if score < 70 and not is_guest:
             return False, "Profile completion score is too low."
 
         # Lock to prevent duplicate concurrent requests
