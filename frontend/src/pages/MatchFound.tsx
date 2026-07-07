@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/Avatar';
 import { useConnectionState } from '../providers/ConnectionStateProvider';
 import { useSignalingStore } from '../store/signaling';
 import { useCallStore } from '../store/call';
+import { useAuthStore } from '../store/auth';
 
 export default function MatchFound() {
     const navigate = useNavigate();
@@ -36,19 +37,23 @@ export default function MatchFound() {
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
+    const { user } = useAuthStore();
+
     useEffect(() => {
         if (matchId) {
             setMatchContext(matchId, partner.id || 'unknown');
-            // Assuming the peer that navigates here initiates, or we can just try to create peer.
-            // A more robust implementation would use a role provided by the backend.
             if (peerManager) {
-                // Determine if we should initiate. For now, let's just always initiate if we're here
-                // or rely on the backend to send an offer to one and not the other if we both arrive here.
-                // Assuming we are initiator for simplicity, or we can just call createPeer() and let backend handle the rest.
-                peerManager.createPeer(true);
+                // To avoid glare (both sides sending an offer),
+                // we deterministically choose the initiator by comparing user IDs.
+                // Assuming IDs are numeric or string, we just sort them.
+                const myId = user?.id || '';
+                const partnerId = partner.id || '';
+                const isInitiator = String(myId) < String(partnerId);
+                
+                peerManager.createPeer(isInitiator);
             }
         }
-    }, [matchId, peerManager, setMatchContext, partner.id]);
+    }, [matchId, peerManager, setMatchContext, partner.id, user?.id]);
 
     useEffect(() => {
         const setupLocalVideo = async () => {

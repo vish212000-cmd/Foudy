@@ -18,7 +18,8 @@ export default function Searching() {
     if (!lastEvent) return;
 
     if (lastEvent.event === 'matched') {
-        navigate('/match-found', { state: { matchId: lastEvent.payload.matched_with } });
+        const partnerId = lastEvent.payload.matched_with;
+        navigate('/match-found', { state: { matchId: partnerId, partner: { id: partnerId } } });
     } else if (lastEvent.event === 'queue_status' && lastEvent.payload.status === 'IDLE') {
         navigate('/match');
     }

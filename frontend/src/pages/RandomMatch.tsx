@@ -62,8 +62,9 @@ export default function RandomMatch() {
   }, [user, navigate]);
 
   useEffect(() => {
-    if (isJoining && lastEvent?.event === 'match.found') {
-      navigate('/match-found', { state: { matchId: lastEvent.payload.matchId || lastEvent.payload.matched_with, partner: lastEvent.payload.partner } });
+    if (isJoining && lastEvent?.event === 'matched') {
+      const partnerId = lastEvent.payload.matched_with;
+      navigate('/match-found', { state: { matchId: lastEvent.payload.matchId || partnerId, partner: lastEvent.payload.partner || { id: partnerId } } });
     }
   }, [lastEvent, isJoining, navigate]);
 
