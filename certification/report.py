@@ -65,22 +65,22 @@ def generate_report(scorecard: dict, metrics: dict, artifacts_dir: str):
             pipeline_state[stage] = "BLOCKED"
             continue
             
-        val = "PASS"
+        val = "PRODUCTION VERIFIED"
         for s_key, s_mapped in key_map.items():
             if s_mapped == stage and scorecard.get(s_key) == "FAIL":
-                val = "FAIL"
+                val = "FAILED"
                 break
         
         if scorecard.get(stage) == "FAIL":
-            val = "FAIL"
+            val = "FAILED"
             
         pipeline_state[stage] = val
-        if val == "FAIL":
+        if val == "FAILED":
             blocked = True
             failed_stage = stage
             
     if exit_code == 3 and failed_stage:
-        pipeline_state[failed_stage] = "ERROR"
+        pipeline_state[failed_stage] = "FAILED"
             
     frontend_ver = scorecard.get("Frontend Version", "UNKNOWN")
     backend_ver = dep.get("git_commit", "UNKNOWN")

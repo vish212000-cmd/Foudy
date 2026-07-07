@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-07-06T10:14:47.295Z",
+  "url": "https://foudy.online/match",
+  "method": "GET",
+  "headers": {
+    "accept-language": "en-US",
+    "upgrade-insecure-requests": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36",
+    "sec-ch-ua": "\"HeadlessChrome\";v=\"149\", \"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\""
+  },
+  "request_body": "",
+  "status": 308,
+  "response_body": "",
+  "latency": 0
+}

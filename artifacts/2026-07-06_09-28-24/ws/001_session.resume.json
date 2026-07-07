@@ -1,0 +1,7 @@
+{
+  "timestamp": "2026-07-06T09:28:48.900Z",
+  "direction": "sent",
+  "payload": {
+    "event": "session.resume"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "timestamp": "2026-07-06T10:48:30.609Z",
+  "direction": "received",
+  "payload": {
+    "event": "session.resume.failed"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-07-06T10:50:06.606Z",
+  "direction": "received",
+  "payload": {
+    "event": "session.resume.success",
+    "payload": {
+      "state": "MATCHING",
+      "data": {
+        "status": "MATCHING"
+      }
+    }
+  }
+}

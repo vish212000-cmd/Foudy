@@ -1,0 +1,176 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: test_webrtc_production.spec.ts >> Production WebRTC Certification
+- Location: test_webrtc_production.spec.ts:172:1
+
+# Error details
+
+```
+Test timeout of 60000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - 'generic "Connection Status: connected" [ref=e3]'
+  - generic [ref=e9]:
+    - paragraph [ref=e10]: We use cookies to improve your experience, remember your preferences, and secure our WebRTC connections. By clicking "Accept", you consent to our use of cookies.
+    - generic [ref=e11]:
+      - link "Privacy Policy" [ref=e12] [cursor=pointer]:
+        - /url: /privacy
+      - button "Accept" [ref=e13]
+  - generic [ref=e14]:
+    - complementary [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e18]:
+          - generic [ref=e20]: F
+          - generic [ref=e21]: FOUDY
+        - navigation [ref=e23]:
+          - link "Dashboard" [ref=e24] [cursor=pointer]:
+            - /url: /home
+            - img [ref=e25]
+            - generic [ref=e28]: Dashboard
+          - link "Random Match" [ref=e29] [cursor=pointer]:
+            - /url: /match
+            - img [ref=e30]
+            - generic [ref=e36]: Random Match
+          - link "Rooms" [ref=e37] [cursor=pointer]:
+            - /url: /rooms
+            - img [ref=e38]
+            - generic [ref=e43]: Rooms
+          - link "Messages" [ref=e44] [cursor=pointer]:
+            - /url: /chat
+            - img [ref=e45]
+            - generic [ref=e47]: Messages
+          - link "Notifications" [ref=e48] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e49]
+            - generic [ref=e52]: Notifications
+        - generic [ref=e53]:
+          - link "Settings" [ref=e54] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e55]
+            - generic [ref=e58]: Settings
+          - button "Log out" [ref=e59]:
+            - img [ref=e60]
+            - generic [ref=e63]: Log out
+        - link "G Guest1633 guest_b268b7a45998@foudy.local" [ref=e65] [cursor=pointer]:
+          - /url: /profile
+          - generic [ref=e66]:
+            - generic [ref=e68]: G
+            - generic [ref=e69]:
+              - generic [ref=e70]: Guest1633
+              - generic [ref=e71]: guest_b268b7a45998@foudy.local
+        - button [ref=e72]:
+          - img [ref=e73]
+    - generic [ref=e75]:
+      - banner [ref=e76]:
+        - generic [ref=e78]:
+          - img [ref=e79]
+          - textbox "Search rooms..." [ref=e82]
+        - generic [ref=e83]:
+          - generic [ref=e88]: Connected
+          - button [ref=e89]:
+            - img [ref=e90]
+          - generic [ref=e96]: G
+      - main [ref=e97]:
+        - generic [ref=e99]:
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - heading "Complete Your Profile" [level=1] [ref=e102]
+              - paragraph [ref=e103]: Help others get to know you better. Complete your profile to start matching.
+            - generic [ref=e104]:
+              - generic [ref=e105]:
+                - generic [ref=e106]:
+                  - generic [ref=e107]:
+                    - heading "Profile Completion" [level=3] [ref=e108]
+                    - generic [ref=e109]: 14%
+                  - paragraph [ref=e112]: You need at least 70% to enter matchmaking.
+                  - generic [ref=e113]:
+                    - generic [ref=e114]:
+                      - img [ref=e116]
+                      - generic [ref=e118]: Display name
+                    - generic [ref=e119]:
+                      - img [ref=e121]
+                      - generic [ref=e124]: Avatar
+                    - generic [ref=e125]:
+                      - img [ref=e127]
+                      - generic [ref=e130]: Country
+                    - generic [ref=e131]:
+                      - img [ref=e133]
+                      - generic [ref=e136]: Gender Preference
+                    - generic [ref=e137]:
+                      - img [ref=e139]
+                      - generic [ref=e142]: Interests
+                    - generic [ref=e143]:
+                      - img [ref=e145]
+                      - generic [ref=e148]: Languages
+                    - generic [ref=e149]:
+                      - img [ref=e151]
+                      - generic [ref=e154]: Bio
+                - generic [ref=e156]:
+                  - generic [ref=e157]:
+                    - generic [ref=e158]:
+                      - generic [ref=e159]:
+                        - generic [ref=e161]: G
+                        - generic [ref=e162] [cursor=pointer]:
+                          - img [ref=e163]
+                          - generic [ref=e166]: Change
+                      - generic [ref=e167]:
+                        - paragraph [ref=e168]: JPG, PNG or WebP
+                        - paragraph [ref=e169]: Max 5MB
+                    - generic [ref=e170]:
+                      - generic [ref=e171]:
+                        - text: Display Name
+                        - textbox "VISH" [ref=e174]: Guest1633
+                      - generic [ref=e175]:
+                        - text: Bio
+                        - generic [ref=e176]:
+                          - textbox "Tell others a bit about yourself..." [ref=e177]
+                          - generic [ref=e178]: 0/200
+                  - generic [ref=e179]:
+                    - generic [ref=e180]:
+                      - text: Country
+                      - combobox [ref=e181]:
+                        - generic [ref=e182]: Select country
+                        - img [ref=e183]
+                    - generic [ref=e186]:
+                      - text: Gender Preference
+                      - combobox [ref=e187]:
+                        - generic: Select gender
+                        - img [ref=e188]
+                      - combobox [ref=e190]
+                  - generic [ref=e191]:
+                    - generic [ref=e192]:
+                      - text: Interests
+                      - combobox [ref=e193]:
+                        - generic [ref=e195]: Select interests...
+                        - img [ref=e196]
+                    - generic [ref=e199]:
+                      - text: Keywords (optional)
+                      - combobox [ref=e200]:
+                        - generic [ref=e202]: "Add keywords (e.g., #startup, AI)..."
+                        - img [ref=e203]
+                    - generic [ref=e206]:
+                      - text: Languages
+                      - combobox [ref=e207]:
+                        - generic [ref=e209]: Select languages...
+                        - img [ref=e210]
+              - generic [ref=e214]:
+                - heading "Live Preview" [level=3] [ref=e215]: Live Preview
+                - generic [ref=e220]:
+                  - generic [ref=e222]: G
+                  - generic [ref=e223]:
+                    - heading "Guest1633" [level=4] [ref=e224]
+                    - paragraph [ref=e225]: No location
+          - generic [ref=e227]:
+            - button "Cancel" [ref=e228]
+            - button "Save Changes" [ref=e229]
+```

@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-07-06T10:49:39.031Z",
+  "direction": "received",
+  "payload": {
+    "event": "presence.update",
+    "payload": {
+      "state": "MATCHING"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "timestamp": "2026-07-06T10:49:30.749Z",
+  "direction": "sent",
+  "payload": {
+    "event": "heartbeat"
+  }
+}

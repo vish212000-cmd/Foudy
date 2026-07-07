@@ -1,0 +1,42 @@
+Skip to content
+Navigation Menu
+Platform
+Solutions
+Resources
+Open Source
+Enterprise
+Pricing
+Sign in
+Sign up
+vish212000-cmd
+/
+Foudy
+Public
+Notifications
+Fork 0
+ Star 0
+Code
+Issues
+Pull requests
+Actions
+Projects
+Security and quality
+Insights
+FOUDY CI Pipeline
+Fix CI by removing procedural test scripts from test collection #62
+Sign in to view logs
+Summary
+All jobs
+Backend CI
+Frontend CI
+Deploy to Render
+Run details
+Usage
+Workflow file
+Annotations
+1 error
+Deploy to Render
+failed  in 2s
+Set up job
+Trigger Render deploy
+Complete job

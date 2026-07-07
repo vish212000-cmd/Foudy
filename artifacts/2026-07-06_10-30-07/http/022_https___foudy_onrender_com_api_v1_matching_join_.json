@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-07-06T10:30:47.552Z",
+  "url": "https://foudy.onrender.com/api/v1/matching/join/",
+  "method": "POST",
+  "status": 400,
+  "response_body": "{\"status\":\"error\",\"error\":\"Profile completion score is too low.\"}",
+  "latency": 0
+}

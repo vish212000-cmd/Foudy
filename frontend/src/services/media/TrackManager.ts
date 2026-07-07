@@ -2,9 +2,11 @@ export class TrackManager {
     private pc: RTCPeerConnection;
     private videoSender: RTCRtpSender | null = null;
     private audioSender: RTCRtpSender | null = null;
+    private localStream: MediaStream;
 
     constructor(pc: RTCPeerConnection) {
         this.pc = pc;
+        this.localStream = new MediaStream();
     }
 
     public async replaceVideoTrack(track: MediaStreamTrack | null) {
@@ -13,13 +15,15 @@ export class TrackManager {
             this.videoSender = this.pc.getSenders().find(s => s.track?.kind === 'video') || null;
             
             if (!this.videoSender && track) {
-                // If no sender and we have a track, add it
-                this.videoSender = this.pc.addTrack(track);
+                // Add to our unified local stream
+                this.localStream.addTrack(track);
+                // Add to peer connection WITH the stream
+                this.videoSender = this.pc.addTrack(track, this.localStream);
                 return;
             }
         }
         
-        if (this.videoSender) {
+        if (this.videoSender && track) {
             await this.videoSender.replaceTrack(track);
         }
     }
@@ -29,12 +33,15 @@ export class TrackManager {
             this.audioSender = this.pc.getSenders().find(s => s.track?.kind === 'audio') || null;
             
             if (!this.audioSender && track) {
-                this.audioSender = this.pc.addTrack(track);
+                // Add to our unified local stream
+                this.localStream.addTrack(track);
+                // Add to peer connection WITH the stream
+                this.audioSender = this.pc.addTrack(track, this.localStream);
                 return;
             }
         }
         
-        if (this.audioSender) {
+        if (this.audioSender && track) {
             await this.audioSender.replaceTrack(track);
         }
     }

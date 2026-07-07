@@ -1,6 +1,7 @@
 import json
 import uuid
 from channels.generic.websocket import AsyncWebsocketConsumer
+from asgiref.sync import sync_to_async
 from .repository import RedisPresenceRepository, PresenceState
 from .heartbeat import HeartbeatService
 from .presence_manager import PresenceManager
@@ -40,16 +41,17 @@ class RealtimeGateway(AsyncWebsocketConsumer):
         
         await self.accept()
 
-        # Handle presence
-        is_new_online = self.presence_manager.handle_connect(self.user_id, self.connection_id)
+        # Handle presence without blocking the async event loop
+        is_new_online = await sync_to_async(self.presence_manager.handle_connect)(self.user_id, self.connection_id)
         if is_new_online:
             # In a full system, we might broadcast presence.online to friends here
             pass
 
         # Send initial state
+        state = await sync_to_async(self.presence_manager.repo.get_state)(self.user_id)
         await self.send_json({
             "event": "presence.update",
-            "payload": {"state": self.presence_manager.repo.get_state(self.user_id)}
+            "payload": {"state": state}
         })
 
     async def disconnect(self, close_code):
@@ -59,7 +61,7 @@ class RealtimeGateway(AsyncWebsocketConsumer):
                 self.channel_name
             )
             
-            is_last_offline = self.presence_manager.handle_disconnect(self.user_id, self.connection_id)
+            is_last_offline = await sync_to_async(self.presence_manager.handle_disconnect)(self.user_id, self.connection_id)
             if is_last_offline:
                 # Could broadcast presence.offline
                 pass
@@ -93,11 +95,11 @@ class RealtimeGateway(AsyncWebsocketConsumer):
             event = data.get('event')
             
             if event == 'heartbeat':
-                self.heartbeat_service.process_heartbeat(self.user_id)
+                await sync_to_async(self.heartbeat_service.process_heartbeat)(self.user_id)
                 await self.send_json({"event": "heartbeat.ack"})
                 
             elif event == 'session.resume':
-                success, state, payload = self.recovery_service.attempt_recovery(self.user_id)
+                success, state, payload = await sync_to_async(self.recovery_service.attempt_recovery)(self.user_id)
                 if success:
                     await self.send_json({
                         "event": "session.resume.success",
@@ -107,14 +109,16 @@ class RealtimeGateway(AsyncWebsocketConsumer):
                     await self.send_json({"event": "session.resume.failed"})
 
             elif event and event.startswith('signaling.'):
-                response = self.signaling_dispatcher.dispatch(self.user_id, event, data.get('payload', {}))
+                response = await sync_to_async(self.signaling_dispatcher.dispatch)(self.user_id, event, data.get('payload', {}))
                 await self.send_json(response)
                 
             elif event and event.startswith('chat.'):
-                response = self.chat_dispatcher.dispatch(self.user_id, event, data.get('payload', {}))
+                response = await sync_to_async(self.chat_dispatcher.dispatch)(self.user_id, event, data.get('payload', {}))
                 await self.send_json(response)
                 
             elif event and event.startswith('room.'):
+                # room_dispatcher might already be async if it uses await inside? Let's check
+                # Actually, wait, let's keep it as is if it's already an async dispatch
                 await self.room_dispatcher.dispatch(event, data.get('payload', {}))
                 
             elif event and event.startswith('group.'):

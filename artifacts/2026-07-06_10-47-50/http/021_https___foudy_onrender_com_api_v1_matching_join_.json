@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-07-06T10:48:34.587Z",
+  "url": "https://foudy.onrender.com/api/v1/matching/join/",
+  "method": "POST",
+  "status": 200,
+  "response_body": "{\"status\":\"success\",\"message\":\"Successfully joined queue.\"}",
+  "latency": 0
+}

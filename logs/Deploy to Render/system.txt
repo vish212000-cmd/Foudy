@@ -1,0 +1,9 @@
+2026-07-07T05:32:10.1530000Z Evaluating deploy-to-render.if
+2026-07-07T05:32:10.1530000Z Evaluating: (success() && (((github.ref == 'refs/heads/main') && (github.event_name == 'push'))))
+2026-07-07T05:32:10.1530000Z Expanded: (true && (('refs/heads/main' == 'refs/heads/main') && ('push' == 'push')))
+2026-07-07T05:32:10.1530000Z Result: true
+2026-07-07T05:32:10.1540000Z Requested labels: ubuntu-latest
+2026-07-07T05:32:10.1540000Z Job defined at: vish212000-cmd/Foudy/.github/workflows/ci.yml@refs/heads/main
+2026-07-07T05:32:10.1540000Z Waiting for a runner to pick up this job...
+2026-07-07T05:32:10.6470000Z Job is about to start running on the hosted runner: GitHub Actions 1000000327
+2026-07-07T05:32:10.6470000Z Job is waiting for a hosted runner to come online.

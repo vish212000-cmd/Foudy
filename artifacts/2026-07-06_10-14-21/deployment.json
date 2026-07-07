@@ -1,0 +1,15 @@
+{
+  "status": "healthy",
+  "version": "1.1.0",
+  "git_commit": "6a42b5b1fc8f517cdc6465e587cc6118cf6e5c8f",
+  "git_branch": "main",
+  "build_number": "unknown",
+  "build_date": "unknown",
+  "ci_provider": "unknown",
+  "workflow_run": "unknown",
+  "environment": "production",
+  "render_service_id": "srv-d8vptspo3t8c73bj27r0",
+  "render_instance_id": "srv-d8vptspo3t8c73bj27r0-hibernate-659b548478-gcgfh",
+  "python_version": "3.12.0",
+  "django_version": "6.0.6"
+}

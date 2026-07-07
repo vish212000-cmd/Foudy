@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-07-06T10:30:32.398Z",
+  "url": "https://foudy.onrender.com/api/v1/auth/guest/",
+  "method": "POST",
+  "status": 201,
+  "response_body": "{\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgzMzM3NDMzLCJpYXQiOjE3ODMzMzM4MzMsImp0aSI6IjI2MGYxMDQ1ZGI0MzQ2ODhhZDFiN2MzNzE1MDg0ZDc5IiwidXNlcl9pZCI6IjNmZjI5OGEyLWQwOWQtNDkwMi04MGJlLTlmMWRkZjU1MTAyYyIsInNlc3Npb25faWQiOiJhMTgwZjcwMy0zZTA0LTQ1ODAtYmExMS01OThhOGFhYmI2MmEifQ.aFk47QC22wfXD29GKkBcvM9QiMoat4DV5Y4fg_nnY9I\",\"user\":{\"id\":\"3ff298a2-d09d-4902-80be-9f1ddf55102c\",\"email\":\"guest_6beb83ea1e3d@foudy.local\",\"is_guest\":true,\"profile\":{\"display_name\":\"Guest5144\",\"avatar\":null,\"bio\":\"\",\"interests\":[],\"keywords\":[],\"languages\":[],\"country\":\"\",\"gender_preference\":\"\",\"privacy_settings\":{},\"notification_settings\":{},\"completion_score\":15}}}",
+  "latency": 0
+}

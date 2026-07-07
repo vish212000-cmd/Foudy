@@ -1,0 +1,40 @@
+﻿2026-07-07T05:32:12.1030069Z Current runner version: '2.335.1'
+2026-07-07T05:32:12.1066946Z ##[group]Runner Image Provisioner
+2026-07-07T05:32:12.1068550Z Hosted Compute Agent
+2026-07-07T05:32:12.1069434Z Version: 20260624.560
+2026-07-07T05:32:12.1070539Z Commit: 925d229a51159bc391ae97e54a2dd1fe20af789d
+2026-07-07T05:32:12.1071760Z Build Date: 2026-06-24T18:26:47Z
+2026-07-07T05:32:12.1072892Z Worker ID: {56d67299-f660-408d-8531-76be52bfe1b2}
+2026-07-07T05:32:12.1074016Z Azure Region: eastus2
+2026-07-07T05:32:12.1074902Z ##[endgroup]
+2026-07-07T05:32:12.1076893Z ##[group]Operating System
+2026-07-07T05:32:12.1078104Z Ubuntu
+2026-07-07T05:32:12.1078945Z 24.04.4
+2026-07-07T05:32:12.1079888Z LTS
+2026-07-07T05:32:12.1080686Z ##[endgroup]
+2026-07-07T05:32:12.1081612Z ##[group]Runner Image
+2026-07-07T05:32:12.1082566Z Image: ubuntu-24.04
+2026-07-07T05:32:12.1083494Z Version: 20260628.225.1
+2026-07-07T05:32:12.1085671Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260628.225/images/ubuntu/Ubuntu2404-Readme.md
+2026-07-07T05:32:12.1088612Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260628.225
+2026-07-07T05:32:12.1090193Z ##[endgroup]
+2026-07-07T05:32:12.1092040Z ##[group]GITHUB_TOKEN Permissions
+2026-07-07T05:32:12.1094962Z Contents: read
+2026-07-07T05:32:12.1095765Z Metadata: read
+2026-07-07T05:32:12.1096718Z Packages: read
+2026-07-07T05:32:12.1097866Z ##[endgroup]
+2026-07-07T05:32:12.1100992Z Secret source: Actions
+2026-07-07T05:32:12.1102449Z Prepare workflow directory
+2026-07-07T05:32:12.1580116Z Prepare all required actions
+2026-07-07T05:32:12.1676033Z Complete job name: Deploy to Render
+2026-07-07T05:32:12.2481441Z ##[group]Run curl -s -X POST "" \
+2026-07-07T05:32:12.2482331Z [36;1mcurl -s -X POST "" \[0m
+2026-07-07T05:32:12.2483140Z [36;1m  -H "Content-Type: application/json" \[0m
+2026-07-07T05:32:12.2483969Z [36;1m  --fail \[0m
+2026-07-07T05:32:12.2484697Z [36;1m  --retry 3[0m
+2026-07-07T05:32:12.3034226Z shell: /usr/bin/bash -e {0}
+2026-07-07T05:32:12.3036229Z env:
+2026-07-07T05:32:12.3036890Z   RENDER_DEPLOY_HOOK_URL: 
+2026-07-07T05:32:12.3037897Z ##[endgroup]
+2026-07-07T05:32:12.3346902Z ##[error]Process completed with exit code 3.
+2026-07-07T05:32:12.3496477Z Cleaning up orphan processes

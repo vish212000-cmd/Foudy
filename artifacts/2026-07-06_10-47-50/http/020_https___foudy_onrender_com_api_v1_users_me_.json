@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-07-06T10:48:27.165Z",
+  "url": "https://foudy.onrender.com/api/v1/users/me/",
+  "method": "GET",
+  "status": 200,
+  "response_body": "{\"id\":\"ba7d967e-d369-4b29-a916-1f76c4fb524b\",\"email\":\"guest_aabe6c8b6b57@foudy.local\",\"is_guest\":true,\"profile\":{\"display_name\":\"Guest4859\",\"avatar\":null,\"bio\":\"\",\"interests\":[],\"keywords\":[],\"languages\":[],\"country\":\"\",\"gender_preference\":\"\",\"privacy_settings\":{},\"notification_settings\":{},\"completion_score\":15}}",
+  "latency": 0
+}

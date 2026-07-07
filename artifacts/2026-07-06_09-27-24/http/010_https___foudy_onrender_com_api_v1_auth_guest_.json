@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-07-06T09:27:52.892Z",
+  "url": "https://foudy.onrender.com/api/v1/auth/guest/",
+  "method": "POST",
+  "headers": {
+    "sec-ch-ua-platform": "\"Windows\"",
+    "referer": "https://www.foudy.online/",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36",
+    "accept": "application/json, text/plain, */*",
+    "sec-ch-ua": "\"HeadlessChrome\";v=\"149\", \"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
+    "accept-language": "en-US",
+    "sec-ch-ua-mobile": "?0"
+  },
+  "request_body": "",
+  "status": 201,
+  "response_body": "{\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgzMzMzNjczLCJpYXQiOjE3ODMzMzAwNzMsImp0aSI6Ijg5NDVlNjNmNWNlNTRjMTE4MGZlMDI2YzUxNzYyOGI2IiwidXNlcl9pZCI6IjU1YzVlZDVjLTU3MGItNDRmMy1iOGRiLTE1ZjhmYjRlOWY4MyIsInNlc3Npb25faWQiOiIxODY4NDAyYi1jYmY2LTQyMzctYTE2OC1jZGFjN2Y0ODczMjYifQ.8V5hX0LGAJWI49W0EDO_IZjw6Kk2eLIN7GRMKQqf3rk\",\"user\":{\"id\":\"55c5ed5c-570b-44f3-b8db-15f8fb4e9f83\",\"email\":\"guest_d8ba67f22df6@foudy.local\",\"is_guest\":true,\"profile\":{\"display_name\":\"Guest8101\",\"avatar\":null,\"bio\":\"\",\"interests\":[],\"keywords\":[],\"languages\":[],\"country\":\"\",\"gender_preference\":\"\",\"privacy_settings\":{},\"notification_settings\":{},\"completion_score\":15}}}",
+  "latency": 0
+}

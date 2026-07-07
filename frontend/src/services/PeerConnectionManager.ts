@@ -41,9 +41,15 @@ export class PeerConnectionManager {
         };
 
         this.pc.ontrack = (event) => {
-            if (event.streams && event.streams[0]) {
-                useCallStore.getState().setRemoteStream(event.streams[0]);
+            const currentStream = useCallStore.getState().remoteStream || new MediaStream();
+            if (event.track) {
+                // Check if track is already there to avoid duplicates
+                if (!currentStream.getTracks().find(t => t.id === event.track.id)) {
+                    currentStream.addTrack(event.track);
+                }
             }
+            // Trigger store update with a new MediaStream instance so React detects it
+            useCallStore.getState().setRemoteStream(new MediaStream(currentStream.getTracks()));
         };
 
         this.pc.oniceconnectionstatechange = () => {
